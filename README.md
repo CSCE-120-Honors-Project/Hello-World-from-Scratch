@@ -1,2 +1,2 @@
-# HonorsProject
-Our honor's project for CSCE 120
+# DIY Bootloader
+Our honors project for CSCE 120
