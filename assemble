@@ -1,0 +1,5 @@
+#!/bin/bash
+
+prefix=$(echo $1 | sed "s/..$//")
+as -o "$prefix.o" "$prefix.s"
+ld -o "$prefix" "$prefix.o"
