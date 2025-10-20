@@ -27,7 +27,7 @@ assemble:
 	$(COMMAND_PREFIX)-as $(SCRIPT_PREFIX).s
 
 link:
-	$(COMMAND_PREFIX)-ld -T linker.ld $(SCRIPT_PREFIX).o -o $(OUTPUT_PREFIX).elf
+	$(COMMAND_PREFIX)-ld $(SCRIPT_PREFIX).o -o $(OUTPUT_PREFIX).elf
 
 flatten:
 	$(COMMAND_PREFIX)-objcopy $(SCRIPT_PREFIX).elf -O binary $(OUTPUT_PREFIX).bin
