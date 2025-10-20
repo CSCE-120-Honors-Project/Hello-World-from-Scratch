@@ -1,12 +1,14 @@
 SCRIPT ?= "*.s"
-SCRIPT_PREFIX := $(shell echo $(SCRIPT) | sed "s/\..+$//")
 OUTPUT ?= $(SCRIPT_PREFIX).elf
-OUTPUT_PREFIX := $(shell echo $(OUTPUT) | sed "s/\..+$//")
 
 ifeq ($(OS), WINDOWS_NT)
 	COMMAND_PREFIX := aarch64-none-elf
+	SCRIPT_PREFIX := $(shell powershell -Command "Write-Host ('$(SCRIPT)' -replace '\.[^.]+$$','')")
+	OUTPUT_PREFIX := $(shell powershell -Command "Write-Host ('$(OUTPUT)' -replace '\.[^.]+$$','')")
 else
 	COMMAND_PREFIX := aarch64-elf
+	SCRIPT_PREFIX := $(shell echo $(SCRIPT) | sed -E "s/\.[^.]+$$//")
+	OUTPUT_PREFIX := $(shell echo $(OUTPUT) | sed -E "s/\.[^.]+$$//")
 endif
 
 .PHONY: help assemble link flatten clean build delete
