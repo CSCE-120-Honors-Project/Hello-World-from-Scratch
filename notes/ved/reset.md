@@ -1,0 +1,4 @@
+- All general-purpose registers set to zero
+- Stack pointer uninitialized (requires bootloader setup)
+- Exception level typically starts at EL3 (highest privilege)
+- MMU and caches disabled initially
