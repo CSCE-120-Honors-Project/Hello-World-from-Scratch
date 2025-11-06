@@ -9,7 +9,8 @@ Our honors project for CSCE 120
 
 ## Building the program
 The provided [Makefile](Makefile) provides a platform-agnostic way of building the program from source.
-> [!IMPORTANT] To build the program, the following build tools must be installed, depending on the operating system:
+> [!IMPORTANT] 
+> To build the program, the following build tools must be installed, depending on the operating system:
 > * Windows: [Windows Aarch64 Bare Metal Target ARM Toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads#:~:text=x86_64%2Darm%2Dnone%2Dlinux%2Dgnueabihf.exe.sha256asc-,AArch64%20bare%2Dmetal%20target%20(aarch64%2Dnone%2Delf),-arm%2Dgnu%2Dtoolchain%2D14.3.rel1%2Dmingw%2Dw64)
 > * macOS: Install [Homebrew](https://brew.sh/) and run `brew install aarch64-elf-gcc`
 
