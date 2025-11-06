@@ -42,5 +42,3 @@ It specifies the starting address of the bootloader in RAM and defines sections:
 * `.bss`: Reserves space for uninitialized global and static variables. These variables may be initialized at runtime.
 
 The linker script also includes symbols to track the start and end of the various sections, which can be used in the bootloader's code for memory management tasks.
-Refer to **The Location Counter and Linker Script Symbols** section of [Kedar's Notes](notes/kedar/notes.md) for more information on how to use these symbols in `C/C++` code.
-
