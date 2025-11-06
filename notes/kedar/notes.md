@@ -38,7 +38,8 @@ ENTRY(<function name>)
 ENTRY(main)
 ```
  
-> **Note:** `Reset_Handler` is a piece of software executed after the system resets and sets up the environment C/C++ code requires. BIOS typically initializes this, so we don't have to worry about rolling out our own `Reset_Handler`.  
+> [!NOTE]
+> `Reset_Handler` is a piece of software executed after the system resets and sets up the environment C/C++ code requires. BIOS typically initializes this, so we don't have to worry about rolling out our own `Reset_Handler`.  
 > The `Reset_Handler`'s address is stored in something called a vector table, which also stores information on where instructions are located to handle interrupts or exceptions. On ARM Cortex-A processors, the vector table contains the actual instructions used to handle exceptions or interrupts.
 
 ### The MEMORY Command
@@ -87,7 +88,8 @@ Where:
 * `<ADDRESS_INFORMATION>` is the information of how that section should be stored and loaded in memory. The names specified here are the names present in the `MEMORY` command.
     * `<VMA>` is the virtual memory address of the section and comes first in address information. The virtual memory address of a section is where it resides in memory during code execution.
     * `<LMA>` is the load memory address of the section and comes second in address information. The load memory address of a section is where it resides when the system loads the program into memory initially.
-    > **Note:** Typically, VMA and LMA are the same. They would differ in bootloader development, however there might be certain sections that reside in VMA instead of LMA for performance reasons or to reprogram flash memory.
+    > [!NOTE]
+    > Typically, VMA and LMA are the same. They would differ in bootloader development, however there might be certain sections that reside in VMA instead of LMA for performance reasons or to reprogram flash memory.
     * If `<VMA>` and `<LMA>` are the same, only `<VMA>` needs to be specified in the `SECTION` command.
 
 The order in which sections are linked matters based on the hardware specification and safety constraints, but aren't enforced by the linker itself. Typically, the order looks like this:
@@ -123,7 +125,8 @@ The location counter is denoted by a `.` and tracks the boundaries of different 
 The location counter tracks the virtual memory address location.
 
 The location counter is used in conjunction with other linker script symbols. Symbols are the names of addresses. For example, if in a C/C++ program there's some code `int x = 67;`, the resultant `.o` file will match the symbol name `x` to the memory address at which the variable with name `x` is stored in the C/C++ program in something called a symbol table. Function names are also mapped to addresses as symbol names in the resultant `.o` file as well.
-> [!NOTE] The C/C++ compiler looks at the variable definitions present in the program and creates symbols based on those variable names.  
+> [!NOTE]
+> The C/C++ compiler looks at the variable definitions present in the program and creates symbols based on those variable names.  
 
 When developing a linker script, we create our own symbols to identify the addresses of the boundaries between the different sections present in the program. These symbols are not variables and are local to the linker script. When the linker sees symbol definitions, it adds these definitions to the symbol table of the final `.elf` file.
 
