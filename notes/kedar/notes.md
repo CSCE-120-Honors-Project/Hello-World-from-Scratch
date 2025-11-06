@@ -9,6 +9,7 @@
     * [Map Files and the ALIGN Command](#map-files-and-the-align-command)
     * [The COMMON Section](#the-common-section)
     * [The KEEP Command](#the-keep-command)
+* [Cortex A53 Chip](#cortex-a53-chip)
 
 ## Linker Scripts
 Linker scripts are text files which explain how different sections of object (`.o`) files should be merged to create an executable (`.elf`) by assigning them different addresses. Linker scripts also include the various memory locations of the target board, as well as where code will be stored in that memory.
@@ -163,7 +164,7 @@ Include the `COMMON` section in the linker script like so:
 ```    
 .bss : {
     *(.bss)
-    *(.common)
+    *(.COMMON)
 } > SRAM
 ```
 
@@ -176,3 +177,14 @@ KEEP(*(<section name>))
 KEEP(*( .isr_vector ))
 ```
 Where `<section name>` is the name of the section to be kept. The `KEEP` command is found within the `SECTIONS` command.
+
+## Cortex A53 Chip
+The Cortex A53 is a 64-bit ARMv8 chip that we intend on using for our honors project. Its memory layout, for the purposes of developing a linker script, varies based on the Software-on-Chip. 
+However, when virtualizing on QEMU, the memory layout is as follows:
+* Flash 0: `0x0000_0000` to `0x0400_0000` (64 MB)
+* Flash 1: `0x0400_0000` to `0x0800_0000` (64 MB)
+* RAM: `0x4000_0000` 
+* Device Tree Blob (DTB): `0x4000_0000` (this is where the DTB is loaded by QEMU)
+    * A device tree blob is used to describe hardware in a platform-agnostic manner. The DTB is loaded onto RAM by the second-stage bootloader for use by the kernel.
+
+When developing a linker script for a QEMU Cortex A53 bootloader, the `MEMORY` sections would really only need Flash and RAM.
