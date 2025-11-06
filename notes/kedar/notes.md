@@ -96,22 +96,23 @@ The order in which sections are linked matters based on the hardware specificati
 * The `.rodata` section containing read-only data like string literals and constants
 * The `.data` section containing global and static variables with initial values.
 * The `.bss` section containing uninitialized or zero-initialized variables and data.
+    * The `.bss` section shouldn't occupy space in the final executable, but should have space allocated for it in memory during execution. The `NOLOAD` attribute can be used in the `SECTIONS` command to indicate this.
 * Any unused code memory.
 
 For example, given two object files `main.o` and `led.o`, each with sections `.text`, `.data`, `.bss`, and `.rodata`, the `SECTIONS` portion of the linker script would look like this:
 ```
 SECTIONS {
-    .text: {
+    .text : {
         *(.isr_vector) // * is wildcard notation
         *(.text)
         *(.rodata)
     }> FLASH
 
-    .data: {
+    .data : {
         *(.data)
     }> SRAM AT> FLASH
 
-    .bss: {
+    .bss (NOLOAD) : {
         *(.bss)
     }> SRAM
 }
@@ -187,4 +188,5 @@ However, when virtualizing on QEMU, the memory layout is as follows:
 * Device Tree Blob (DTB): `0x4000_0000` (this is where the DTB is loaded by QEMU)
     * A device tree blob is used to describe hardware in a platform-agnostic manner. The DTB is loaded onto RAM by the second-stage bootloader for use by the kernel.
 
-When developing a linker script for a QEMU Cortex A53 bootloader, the `MEMORY` sections would really only need Flash and RAM.
+When developing a linker script for a QEMU Cortex A53 bootloader, the `MEMORY` sections would really only need Flash and RAM. Since QEMU loads binaries specified with the `-kernel` flag into RAM by default, the load memory address (LMA) and virtual memory address (VMA) for the sections would be the same. 
+
