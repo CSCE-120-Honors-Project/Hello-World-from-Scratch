@@ -2,12 +2,13 @@
 Our honors project for CSCE 120
 
 ## Table of Contents
-* [What is our bootloader?](#what-is-our-bootloader)
-* [Building the program](#building-the-program)
+* [What is our Bootloader?](#what-is-our-bootloader)
+* [Building the Program](#building-the-program)
+* [The Linker Script](#the-linker-script)
 
-## What is our bootloader?
+## What is our Bootloader?
 
-## Building the program
+## Building the Program
 The provided [Makefile](Makefile) provides a platform-agnostic way of building the program from source.
 > [!IMPORTANT]
 > To build the program, the following build tools must be installed, depending on the operating system:
@@ -30,3 +31,16 @@ make build SCRIPT=bootloader.s OUTPUT=bootloader.bin
 # To run the program in QEMU
 make virtualize BINARY=bootloader.bin 
 ```
+
+## The Linker Script
+The provided [linker script](linker.ld) is used to control the memory layout of the bootloader during the linking process.
+It specifies the starting address of the bootloader in RAM and defines sections:
+* `.text.boot`: Contains the bootloader's startup code, such as the code that zero-initializes the .bss section.
+* `.text`: Contains the main code of the bootloader.
+* `.rodata`: Contains read-only data, such as string literals.
+* `.data`: Contains initialized global and static variables.
+* `.bss`: Reserves space for uninitialized global and static variables. These variables may be initialized at runtime.
+
+The linker script also includes symbols to track the start and end of the various sections, which can be used in the bootloader's code for memory management tasks.
+Refer to **The Location Counter and Linker Script Symbols** section of [Kedar's Notes](notes/kedar/notes.md) for more information on how to use these symbols in `C/C++` code.
+
