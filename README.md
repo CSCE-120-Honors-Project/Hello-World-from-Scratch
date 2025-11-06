@@ -24,4 +24,8 @@ make flatten SCRIPT=bootloader.elf OUTPUT=bootloader.bin
 make clean
 # To delete all object, elf, and binary
 make delete
+# To build the entire program in one command
+make build SCRIPT=bootloader.s OUTPUT=bootloader.bin
+# To run the program in QEMU
+make virtualize BINARY=bootloader.bin 
 ```
