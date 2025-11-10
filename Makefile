@@ -1,5 +1,6 @@
 SCRIPT ?= "*.s"
 OUTPUT ?= $(SCRIPT_PREFIX).elf
+BINARY ?= "kernel.bin"
 
 ifeq ($(OS), WINDOWS_NT)
 	COMMAND_PREFIX := aarch64-none-elf
@@ -11,7 +12,7 @@ else
 	OUTPUT_PREFIX := $(shell echo $(OUTPUT) | sed -E "s/\.[^.]+$$//")
 endif
 
-.PHONY: help assemble link flatten clean build delete
+.PHONY: help assemble link flatten clean build delete virtualize
 .DEFAULT_GOAL := help
 
 help:
@@ -22,12 +23,13 @@ help:
 	@echo "  clean                                       - Delete all object and elf files"
 	@echo "  build SCRIPT=<file.s> OUTPUT=<file.bin>     - Build the project and delete all object and elf files"
 	@echo "  delete                                      - Delete all object, elf, and binary files"
+	@echo "  virtualize BINARY=<file.bin>     			 - Run the binary in QEMU"
 
 assemble:
 	$(COMMAND_PREFIX)-as $(SCRIPT_PREFIX).s
 
 link:
-	$(COMMAND_PREFIX)-ld $(SCRIPT_PREFIX).o -o $(OUTPUT_PREFIX).elf
+	$(COMMAND_PREFIX)-ld -T linker.ld $(SCRIPT_PREFIX).o -o $(OUTPUT_PREFIX).elf
 
 flatten:
 	$(COMMAND_PREFIX)-objcopy $(SCRIPT_PREFIX).elf -O binary $(OUTPUT_PREFIX).bin
@@ -39,3 +41,6 @@ build: assemble link flatten clean
 
 delete: clean
 	rm -f *.bin
+
+virtualize:
+	qemu-system-aarch64 -M virt -cpu cortex-a53 -kernel $(BINARY)
