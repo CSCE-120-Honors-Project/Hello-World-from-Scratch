@@ -7,12 +7,9 @@ then it will go to main which has hello world or whatver
 so this file needs:
 - _start label for entry point
 - setup stack pointer
-- 
+- clear bss because c requires uninitialized variables to be cleared
 - call to c main func
 - hang in case of main returning
-
-
-
 */ 
 
 .section ".text.boot"
@@ -25,3 +22,21 @@ _start:
     mov sp, x0 // put that value into the real stack pointer register
     // WHY THIS 2 STEP PROCESS? its probably safer or smth
 
+    // then clear bss (for uninitialized variables)
+    // the size of this section is calculated by the linker
+    // so we have to get the size as labels provided by linker
+    ldr x0, =__bss_start // start address
+    ldr x1, =__bss_end // end address
+    // now zero out the start and increment until start = end
+clear_bss_loop:
+    cmp x0, x1 // this will set an invisible Z flag to 1 if theyre equal
+    beq bss_cleared // beq checks if z flag is 1, if so, itll go to the bss_cleared symbol and stop the loop
+    str xzr, [x0] // zeros the memory by storing zero from zero register at the location of x0
+    add x0, x0, #8 // read as add <destination> <operand 1> <operand 2>, so this is x0 = x0 + #8
+    b clear_bss_loop // continue the loop
+bss_cleared:
+    bl main // branch with link to main.c
+    // if main somehow returns, processor will go to hang becuase its the next line, then itll get stuck there
+hang:
+    wfi
+    b hang
