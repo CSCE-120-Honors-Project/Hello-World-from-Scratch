@@ -38,22 +38,22 @@ typedef volatile struct __attribute__((packed)) {
     uint32_t selected_queue; // 0x030
     uint32_t queue_maximum_size; // 0x034
     uint32_t selected_queue_size; // 0x038
-    uint32_t reserved2[2]; // 0x03C - 0x043
+    uint32_t reserved_2[2]; // 0x03C - 0x043
     uint32_t queue_ready; // 0x044
-    uint32_t reserved3[2]; // 0x048 - 0x04F
+    uint32_t reserved_3[2]; // 0x048 - 0x04F
     uint32_t queue_notification; // 0x050
-    uint32_t reserved4[3]; // 0x054 - 0x05F
+    uint32_t reserved_4[3]; // 0x054 - 0x05F
     uint32_t interrupt_status; // 0x060
     uint32_t interrupt_acknowledgement; // 0x064
-    uint32_t reserved5[2]; // 0x068 - 0x06F
+    uint32_t reserved_5[2]; // 0x068 - 0x06F
     uint32_t device_status; // 0x070
-    uint32_t reserved6[3]; // 0x074 - 0x07F
+    uint32_t reserved_6[3]; // 0x074 - 0x07F
     uint32_t descriptor_table_address_low; // 0x080 
     uint32_t descriptor_table_address_high; // 0x084
-    uint32_t reserved7[2]; // 0x088 - 0x08F
+    uint32_t reserved_7[2]; // 0x088 - 0x08F
     uint32_t available_ring_address_low; // 0x090
     uint32_t available_ring_address_high; // 0x094
-    uint32_t reserved8[2]; // 0x098 - 0x09F
+    uint32_t reserved_8[2]; // 0x098 - 0x09F
     uint32_t used_ring_address_low; // 0x0A0
     uint32_t used_ring_address_high; // 0x0A4
 } vio_mmio_registers;
