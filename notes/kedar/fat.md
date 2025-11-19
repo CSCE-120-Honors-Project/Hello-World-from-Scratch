@@ -73,7 +73,7 @@ The partition table consists of up to 4 entries, each 16 bytes long. Partitions
 are sections of the disk that can contain different file systems.
 
 Each partition table entry has the following structure:
-| Name | Offset (bits) | Size (bits) | Description |
+| Name | Offset (bytes) | Size (bytes) | Description |
 |------|----------------|---------------|-------------|
 | Boot Flag | 0 | 1 | Indicates if the partition is bootable (0x80) or not (0x00). This can be ignored for the driver. |
 | CHS Begin | 1 | 3 | Starting address of the partition in Cylinder-Head-Sector format. This can be ignored for the driver. |
