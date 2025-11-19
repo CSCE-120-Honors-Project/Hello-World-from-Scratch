@@ -48,8 +48,8 @@ typedef volatile struct __attribute__((packed)) {
     uint32_t reserved5[2]; // 0x068 - 0x06F
     uint32_t device_status; // 0x070
     uint32_t reserved6[3]; // 0x074 - 0x07F
-    uint32_t descriptor_table_address_low; // 0x080 -- physical address
-    uint32_t descriptor_table_address_high; // 0x084 -- physical address
+    uint32_t descriptor_table_address_low; // 0x080 
+    uint32_t descriptor_table_address_high; // 0x084
     uint32_t reserved7[2]; // 0x088 - 0x08F
     uint32_t available_ring_address_low; // 0x090
     uint32_t available_ring_address_high; // 0x094
@@ -91,6 +91,9 @@ typedef struct __attribute__((packed)) {
 
 #define VIO_BLOCK_REQUEST_TYPE_READ 0x00
 #define VIO_BLOCK_REQUEST_TYPE_WRITE 0x01
+
+#define VIO_REQUEST_STATUS_OK 0x00
+#define VIO_REQUEST_STATUS_IO_ERROR 0x01
 
 typedef struct __attribute__((packed)) {
     uint32_t type;
