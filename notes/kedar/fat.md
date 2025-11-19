@@ -135,7 +135,7 @@ Each directory entry is 32 bytes long and contains metadata about a file or
 directory. The structure of a directory entry is as follows:
 | Name | Official Name | Offset (bytes) | Size (bits) | Description |
 |------|----------------|---------------|-------------| -------------|
-| Filename | DIR_Name | 0x00 (0) | 11 | Name of the file + extension (padded with spaces). |
+| Filename | DIR_Name | 0x00 (0) | 88 | Name of the file + extension (padded with spaces). |
 | Attributes | DIR_Attr | 0x0B (11) | 8 | File attributes. |
 | Reserved | DIR_NTRes | 0x0C (12) | 8 | Reserved for future use. |
 | Creation Time (tenths of a second) | DIR_CrtTimeTenth | 0x0D (13) | 8 | Time the file was created in tenths of a second. |
