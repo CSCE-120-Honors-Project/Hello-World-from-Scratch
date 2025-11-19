@@ -31,7 +31,7 @@ void uart_putc(char c) {
 
 // put a string to transmit FIFO
 // calls the putc function for the length of the string
-void uart_puts(char* s) {
+void uart_puts(const char* s) {
     // go for the length of the c style string, so end at '\0' character
     while (*s != '\0') {
         // Convert newline to carriage return + newline
