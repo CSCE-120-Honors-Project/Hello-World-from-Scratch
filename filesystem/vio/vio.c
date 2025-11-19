@@ -122,7 +122,7 @@ int vio_read_sector(uint32_t sector, uint8_t* buffer) {
 
     __sync_synchronize();
 
-    // Notify device of new available buffer to write to
+    // Notify device to process available buffer
     vio_regs->queue_notification = 0;
 
     // Wait for the device to process the request
