@@ -9,7 +9,8 @@
     - [Master Boot Record (MBR)](#master-boot-record-mbr)
     - [Volume ID](#volume-id)
     - [Overall Arrangement](#overall-arrangement)
-- [Navigating Directories](#navigating-directories)
+- [Parsing Directories](#parsing-directories)
+- [Cluster Chains](#cluster-chains)
 
 ## What is FAT?
 FAT (File Allocation Table) is a simple file system architecture widely used in
@@ -119,12 +120,16 @@ The overall arrangement of a FAT32 volume is as follows:
 To convert a cluster number to a sector number, use the formula:
 `Sector Number = Cluster Start Sector + (Cluster Number - 2) * Sectors Per Cluster`
 
-## Navigating Directories
+## Parsing Directories
 At the start, only the first cluster of the root directory is known. Reading
 this cluster will provide the names and first clusters of other files and directories.
 Directories only tell you how to find the first cluster of their contents; you
 must read the clusters to get the actual files and subdirectories.
 This information comes from the FAT.
+
+> [!NOTE]
+> Directories can refer to actual directories or files. Both are represented using
+> the same directory entry structure.
 
 Each directory entry is 32 bytes long and contains metadata about a file or
 directory. The structure of a directory entry is as follows:
@@ -164,3 +169,26 @@ File attributes can be combined using bitwise OR. Common attributes include:
 - `0x10`: Subdirectory
 - `0x20`: Archive (indicates the file has been modified)
 - `0x0F`: Long File Name (LFN) entry
+
+## Cluster Chains
+Since directories only give the first cluster of a file or directory, the File
+Allocation Table must be used to find the rest of the clusters in the chain.
+The FAT is a mix between an array and a linked list. Each entry in the FAT is
+a 32-bit value corresponding to a cluster number. The value at that index
+indicates the next cluster in the chain or a special marker.
+
+One such marker is 0xFFFFFFFF, which indicates the end of the file (EOF) and
+the end of the cluster chain.
+> [!CAUTION]
+> The end of file marker can be any value from 0x0FFFFFF8 to 0x0FFFFFFF.
+> It's usually 0x0FFFFFFF, but it's safer to check for the range.
+Another marker is 0x00000000, which indicates that the cluster is free and not
+allocated to any file.
+
+> [!NOTE]
+> The FAT table only contains data for identifying which clusters belong to
+> which files.
+> It does not contain any actual file data.
+> To read the file data, you must read the clusters indicated by the cluster chain.
+> For the `virt` board on QEMU devices, this is done by using the virtio-block
+> driver to read sectors from the disk image.
