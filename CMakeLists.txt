@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(filesystem/vio)
 add_subdirectory(filesystem/fat)
 
-# Change main.c to whatever actual bootloader program is going to be run
-add_executable(${PROJECT_NAME} main.c)
+# Change placeholder.c to whatever actual bootloader program is going to be run
+add_executable(${PROJECT_NAME} placeholder.c)
 target_link_libraries(${PROJECT_NAME} PUBLIC fat)
 target_link_libraries(${PROJECT_NAME} PUBLIC vio)
