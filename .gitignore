@@ -3,3 +3,6 @@
 **/*.elf
 **/build/
 .vscode
+.cache/
+
+placeholder.c
