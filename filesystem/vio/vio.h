@@ -102,8 +102,37 @@ typedef struct __attribute__((packed)) {
 } vio_block_request;
 
 
+/**
+ * @brief Initializes the VIO block device.
+ *
+ * This function must be called before any other VIO operations.
+ * It sets up the device and prepares it for I/O.
+ *
+ * @return 0 on success, negative value on error.
+ */
 int vio_init();
+
+/**
+ * @brief Reads a single sector from the VIO block device.
+ *
+ * @param sector The sector number to read.
+ * @param buffer Pointer to a buffer of at least VIO_SECTOR_SIZE bytes to receive the data.
+ *
+ * @return 0 on success, negative value on error (e.g., invalid sector, I/O error).
+ * @note The device must be initialized with vio_init() before calling this function.
+ */
 int vio_read_sector(uint32_t sector, uint8_t* buffer);
+
+/**
+ * @brief Reads multiple consecutive sectors from the VIO block device.
+ *
+ * @param start_sector The first sector number to read.
+ * @param sector_count The number of sectors to read.
+ * @param buffer Pointer to a buffer of at least (sector_count * VIO_SECTOR_SIZE) bytes to receive the data.
+ *
+ * @return 0 on success, negative value on error (e.g., invalid sector range, I/O error).
+ * @note The device must be initialized with vio_init() before calling this function.
+ */
 int vio_read_sectors(uint32_t start_sector, uint32_t sector_count, uint8_t* buffer);
 
 #endif
