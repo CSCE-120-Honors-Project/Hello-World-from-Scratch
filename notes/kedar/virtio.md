@@ -100,7 +100,7 @@ There are several important MMIO registers:
 | Queue Device Address High | 0x0A4 | 4 bytes | Upper 32 bits of the physical address of the used ring for the selected virtqueue. |
 
 > [!IMPORTANT]
-> When working with hardware, it's important to disable certain compiler optimizations
+> When working with hardware, it's important to disable certain compiler optimizations.
 > Declaring pointers, structs, and variables as `volatile` ensures that the
 compiler always reads from and writes to the actual memory addresses, preventing
 it from caching values in registers or optimizing away necessary reads/writes.
