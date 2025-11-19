@@ -29,10 +29,8 @@ int vio_init() {
     vio_regs->device_status |= VIO_DEVICE_STATUS_ACKNOWLEDGE;
     vio_regs->device_status |= VIO_DEVICE_STATUS_DRIVER;
     
-    vio_regs->device_features = 0;
     vio_regs->selected_device_features = 0;
     vio_regs->selected_driver_features = 0;
-    vio_regs->driver_features = 0;
 
     vio_regs->device_status |= VIO_DEVICE_STATUS_FEATURES_OK;
     if (!(vio_regs->device_status & VIO_DEVICE_STATUS_FEATURES_OK)) {
