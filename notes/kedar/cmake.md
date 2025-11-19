@@ -170,7 +170,7 @@ Specifies whether to use compiler-specific extensions.
 Example usage:
 ```cmake
 set(CMAKE_CXX_EXTENSIONS <CONDITION>)
-set(CMAKE_CXX_EXTENSIONS <OFF>)
+set(CMAKE_CXX_EXTENSIONS OFF)
 ```
 - `<CONDITION>`: `ON` or `OFF`. If set to `ON`, compiler-specific extensions will be enabled (e.g., GNU extensions for GCC).
 If set to `OFF`, only standard-compliant code will be used.
