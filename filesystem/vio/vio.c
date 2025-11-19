@@ -79,6 +79,9 @@ int vio_init() {
     uint64_t used_ring_address = (uint64_t)&used_ring;
     vio_regs->used_ring_address_low = (uint32_t)(used_ring_address & 0xFFFFFFFF);
     vio_regs->used_ring_address_high = (uint32_t)(used_ring_address >> 32);
+
+    // Ready the queue
+    vio_regs->queue_ready = 1;
     
     // Set final status
     vio_regs->device_status |= VIO_DEVICE_STATUS_DRIVER_OK;
