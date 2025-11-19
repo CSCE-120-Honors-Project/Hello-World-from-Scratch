@@ -3,13 +3,16 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
+#include <stdbool.h>
 
 #define VIO_BASE 0x0A000000
-#define VIO_MAGIC_VALUE 0x74726976
-#define SECTOR_SIZE 512
-#define PAGE_SIZE 4096
+#define VIOQUEUE_SIZE 16
+#define VIO_SECTOR_SIZE 512
+#define VIO_PAGE_SIZE 4096
 
+
+#define VIO_MAGIC_VALUE 0x74726976
+#define VIO_VERSION 2
 
 #define VIO_DEVICE_STATUS_ACKNOWLEDGE 0x01
 #define VIO_DEVICE_STATUS_DRIVER 0x02
@@ -21,7 +24,7 @@
 #define VIO_FEATURES_PAGE_1 0x0
 #define VIO_FEATURES_PAGE_2 0x1
 
-struct vio_mmio_registers { 
+typedef volatile struct __attribute__((packed)) { 
     uint32_t magic_value; // 0x000 - Should be 0x74726976
     uint32_t version; // 0x004 - Should be 2
     uint32_t device_id; // 0x008
@@ -53,47 +56,47 @@ struct vio_mmio_registers {
     uint32_t reserved8[2]; // 0x098 - 0x09F
     uint32_t used_ring_address_low; // 0x0A0
     uint32_t used_ring_address_high; // 0x0A4
-} __attribute__((packed));
+} vio_mmio_registers;
 
 
 #define VIO_DESCRIPTOR_FLAG_NEXT 0x0001
 #define VIO_DESCRIPTOR_FLAG_WRITE 0x0002
 
-struct virtqueue_descriptor {
+typedef struct __attribute__((packed)) { 
     uint64_t address;
     uint32_t length;
     uint16_t flags;
     uint16_t next;
-} __attribute__((packed));
+} vio_descriptor;
 
 
-struct virtqueue_available_ring {
+typedef struct __attribute__((packed)) {
     uint16_t flags;
     uint16_t index;
-    uint16_t ring[];
-} __attribute__((packed));
+    uint16_t ring[VIOQUEUE_SIZE];
+} vioqueue_available_ring;
 
 
-struct virtqueue_used_element {
+typedef struct __attribute__((packed)) {
     uint32_t index;
     uint32_t length;
-} __attribute__((packed));
+} vioqueue_used_element;
 
-struct virtqueue_used_ring {
+typedef struct __attribute__((packed)) {
     uint16_t flags;
     uint16_t index;
-    struct virtqueue_used_element ring[];
-} __attribute__((packed));
+    vioqueue_used_element ring[VIOQUEUE_SIZE];
+} vioqueue_used_ring;
 
 
 #define VIO_BLOCK_REQUEST_TYPE_READ 0x00
 #define VIO_BLOCK_REQUEST_TYPE_WRITE 0x01
 
-struct vio_block_request {
+typedef struct __attribute__((packed)) {
     uint32_t type;
     uint32_t reserved;
     uint64_t sector;
-} __attribute__((packed));
+} vio_block_request;
 
 
 int vio_init();
