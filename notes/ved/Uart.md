@@ -1,4 +1,4 @@
-unserialized asynchronous receiver/transmitter
+universal asynchronous receiver/transmitter
 
 its a peripheral device that the cpu uses to send and receive data
 QEMU initializes it automatically
