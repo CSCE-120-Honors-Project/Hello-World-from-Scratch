@@ -1,6 +1,6 @@
 ELF: ezpz way to go for starting off
 `qemu-system-aarch64 -M virt -cpu cortex-a53 -kernel kernel.elf -nographic`
-kernel.elf will be used for development and testing. its skipping all the bootloader stuff and going straight into a program (vinux)
+kernel.elf will be used for development and testing. it's skipping all the bootloader stuff and going straight into a program (vinux)
 
 img: pretend to be a real computer
 this is what well actually do in the end: its the end goal
