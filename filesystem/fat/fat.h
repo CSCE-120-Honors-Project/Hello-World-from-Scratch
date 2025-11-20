@@ -66,10 +66,42 @@ typedef struct {
     bool is_open;
 } fat_file;
 
-
+/**
+ * @brief Initializes the FAT32 filesystem driver.
+ *
+ * This function must be called before any other FAT operations.
+ * It sets up necessary data structures and prepares the driver for use.
+ *
+ * @return 0 on success, negative value on error.
+ */
 int fat_init();
+
+/**
+ * @brief Mounts a FAT32 partition located at the specified LBA.
+ *
+ * @param partition_lba_start The starting LBA of the FAT32 partition.
+ * @return 0 on success, negative value on error.
+ */
 int fat_mount(uint32_t partition_lba_start);
+
+/**
+ * @brief Opens a file in the FAT32 filesystem.
+ *
+ * @param filename The name of the file to open (in 8.3 format).
+ * @param file Pointer to a fat_file structure to be filled with file information.
+ * @return 0 on success, negative value on error (e.g., file not found).
+ */
 int fat_open(const char* filename, fat_file* file);
+
+/**
+ * @brief Reads data from an open FAT32 file.
+ *
+ * @param file Pointer to the fat_file structure representing the open file.
+ * @param buffer Pointer to a buffer where the read data will be stored.
+ * @param size Number of bytes to read.
+ * @param bytes_read Pointer to a size_t variable where the number of bytes actually read will be stored.
+ * @return 0 on success, negative value on error (e.g., read beyond end of file).
+ */
 int fat_read(fat_file* file, uint8_t* buffer, size_t size, size_t* bytes_read);
 
 #endif
