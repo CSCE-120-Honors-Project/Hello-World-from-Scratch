@@ -1,7 +1,7 @@
 * computer start
 * automatically runs bios/uefi 
 	* runs something in some memory (flash i think)
-	* that thing will be dannies bootloader
+	* that thing will be Danny's bootloader
 * bootloader does some stuff
 	* sets up stack pointer
 	* sets up exception levels
