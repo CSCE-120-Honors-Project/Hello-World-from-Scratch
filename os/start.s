@@ -2,7 +2,7 @@
 This is the os starter code
 so the bootloader jumps straight into this,
 then this will do some setup
-then it will go to main which has hello world or whatver
+then it will go to main which has hello world or whatever
 
 LINKER MUST PROVIDE __bss_start, __bss_end
 
