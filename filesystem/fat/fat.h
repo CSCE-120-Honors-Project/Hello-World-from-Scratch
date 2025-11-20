@@ -14,17 +14,17 @@
 typedef struct __attribute__((packed)) {
     uint8_t boot_flag; // 0x00: Boot flag
     uint8_t chs_start[3]; // 0x01 - 0x03: Starting CHS address
-    uint8_t partition_type; // 0x04: Partition type (should be 0x0B or 0x0C for FAT32)
+    uint8_t type; // 0x04: Partition type (should be 0x0B or 0x0C for FAT32)
     uint8_t chs_end[3]; // 0x05 - 0x07: Ending CHS address
-    uint32_t lba_start; // 0x08: Starting LBA address
+    uint32_t start_lba; // 0x08: Starting LBA address
     uint32_t sectors_count; // 0x0C: Number of sectors in the partition
-} partition_entry;
+} fat_partition_entry;
 
 
 
 typedef struct __attribute__((packed)) {
     uint8_t boot[446]; // 0x00 - 0x1BD: Reserved boot code
-    partition_entry partitions[4]; // 0x1BE - 0x1FD: Partition entries
+    fat_partition_entry partitions[4]; // 0x1BE - 0x1FD: Partition entries
     uint16_t signature; // 0x1FE - 0x1FF: Boot sector signature (0x55AA)
 } fat_master_boot_record;
 
@@ -66,6 +66,15 @@ typedef struct {
     bool is_open;
 } fat_file;
 
+
+/**
+ * @brief Converts a FAT32 cluster number to its corresponding LBA.
+ *
+ * @param cluster The cluster number to convert.
+ * @return The corresponding LBA address.
+ */
+inline uint32_t cluster_to_lba(uint32_t cluster);
+
 /**
  * @brief Initializes the FAT32 filesystem driver.
  *
@@ -78,6 +87,8 @@ int fat_init();
 
 /**
  * @brief Mounts a FAT32 partition located at the specified LBA.
+ * 
+ * This function must be called after fat_init() and before any file operations.
  *
  * @param partition_number The partition number to mount (0-3).
  * @return 0 on success, negative value on error.
