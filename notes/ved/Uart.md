@@ -19,4 +19,4 @@ cool trick that this uart module (pl011) does:
 * instead of putting both transmit data and receive data in the same data register, it recognizes that you want to either read or write and accesses different "hardware" based on what you want
 * so inside the uart chip:
 	* a cpu write request will be rerouted to transmit fifo
-	* whereas a cpu read requirest would be rerouted to receive fifo
+	* whereas a cpu read request would be rerouted to receive fifo
