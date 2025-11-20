@@ -15,7 +15,7 @@ so this file needs:
 */ 
 
 .section ".text.boot"
-.global _start // this makes it so that kinkerscript can see _start
+.global _start // this makes it so that the linker script can see _start
 
 //defining start <- this is where bootloader sends us
 _start:
