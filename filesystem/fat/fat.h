@@ -68,14 +68,6 @@ typedef struct {
 
 
 /**
- * @brief Converts a FAT32 cluster number to its corresponding LBA.
- *
- * @param cluster The cluster number to convert.
- * @return The corresponding LBA address.
- */
-inline uint32_t cluster_to_lba(uint32_t cluster);
-
-/**
  * @brief Initializes the FAT32 filesystem driver.
  *
  * This function must be called before any other FAT operations.

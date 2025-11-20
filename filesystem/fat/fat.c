@@ -10,7 +10,7 @@ static unsigned long cluster_start_lba;
 static uint8_t sectors_per_cluster;
 static unsigned long root_cluster;
 
-inline uint32_t cluster_to_lba(uint32_t cluster) {
+static inline uint32_t cluster_to_lba(uint32_t cluster) {
     return cluster_start_lba + ((cluster - 2) * sectors_per_cluster);
 }
 
