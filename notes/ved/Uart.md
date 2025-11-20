@@ -7,7 +7,7 @@ since its already initialized, we only need to deal with these things:
 * base: 0x09000000
 * data register (what is to be transmitted or what has been received) is offset by 0x000 (its at the start exactly)
 * flag register for checking before writing:
-	* bit 5: trasnmit fifo full
+	* bit 5: transmit fifo full
 		* 1 means its full and we cant send
 		* 0 means space avaialbe and we can write to it
 	* bit 6: receive fifo empty
