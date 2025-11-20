@@ -15,7 +15,7 @@
 
 
 
-linkerscript takes all the files and does it magic,
+linkerscript takes all the files and does its magic,
 * puts my bootloader in storage?
 * puts my uart driver somewhere
 * 
