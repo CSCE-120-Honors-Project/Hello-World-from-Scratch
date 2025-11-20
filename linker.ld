@@ -9,7 +9,7 @@ MEMORY {
     KERNEL (rwx): ORIGIN = 0x40080000, LENGTH = 16M
 }
 
-// Each section has doubleword alignment to match Aarch64 alignemnt standard
+// Each section has doubleword alignment to match Aarch64 alignment standard
 SECTIONS = {
     // Boot code for the bootloader should be placed at the start of load memory
     .text.boot : {
