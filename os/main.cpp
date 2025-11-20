@@ -1,4 +1,4 @@
-#include "uart.h"
+#include "../uart/uart.h"
 
 void main(void) {
     uart_init(); // literally does nothing because qemu pre-initializes it, but have this line for good practice
