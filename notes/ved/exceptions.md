@@ -17,7 +17,7 @@ controls EL1 and EL0
 
 EL3: Secure monitor
 full control over everything
-for security operation's and secure monitor firmware
+for security operations and secure monitor firmware
 controls: security state transition, trusted boot, power management
 
 STEPS TO TAKE
