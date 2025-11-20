@@ -9,7 +9,7 @@
 // flag register bits
 #define FR_TXFF     (1 << 5) // if this bit is set, the transmit FIFO is full
 // this is a 00100000
-#define FR_RXFF     (1 << 4) // if this bit is set, the receive FIFO is empty
+#define FR_RXFE     (1 << 4) // if this bit is set, the receive FIFO is empty
 // this is a 00010000
 
 // init is handled by qemu, so we dont have to do anything
