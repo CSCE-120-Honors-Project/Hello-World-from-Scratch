@@ -2,7 +2,7 @@
 This is the os starter code
 so the bootloader jumps straight into this,
 then this will do some setup
-then it will go to main which has hello world or whatver
+then it will go to main which has hello world or whatever
 
 LINKER MUST PROVIDE __bss_start, __bss_end
 
@@ -15,7 +15,7 @@ so this file needs:
 */ 
 
 .section ".text.boot"
-.global _start // this makes it so that kinkerscript can see _start
+.global _start // this makes it so that the linker script can see _start
 
 //defining start <- this is where bootloader sends us
 _start:
@@ -38,7 +38,7 @@ clear_bss_loop:
     b clear_bss_loop // continue the loop
 bss_cleared:
     bl main // branch with link to main.c
-    // if main somehow returns, processor will go to hang becuase its the next line, then itll get stuck there
+    // if main somehow returns, processor will go to hang because its the next line, then itll get stuck there
 hang:
     wfi
     b hang
