@@ -68,6 +68,21 @@ typedef struct {
 
 
 /**
+ * @brief Formats a filename into 8.3 format.
+ *
+ * This function converts a standard filename into the FAT32 8.3 format,
+ * which consists of up to 8 characters for the name and 3 characters for the extension.
+ * If the name or extension is shorter than the maximum length, it is padded with spaces.
+ * This function can also be used to copy a filename into an 11-byte buffer.
+ *
+ * @param src The source filename (null-terminated string).
+ *  The name should be less than or equal to 8 bytes,
+ *  and the extension should be less than or equal to 3 bytes.
+ * @param dest The destination buffer (must be at least 11 bytes).
+ */
+void format_filename(const char* src, char* dest);
+
+/**
  * @brief Initializes the FAT32 filesystem driver.
  *
  * This function must be called before any other FAT operations.
