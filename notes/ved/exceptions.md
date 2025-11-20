@@ -22,6 +22,6 @@ controls: security state transition, trusted boot, power management
 
 STEPS TO TAKE
 * dont need to do any of this bc this program so simple
-* but i owul dcreate a table iwht 16 entries at some 2kb aligned address bc aarch64 requires that
+* but i would create a table with 16 entries at some 2kb aligned address bc aarch64 requires that
 * then write handlers for each type i want to handle
 * tell the cpu about it by writing to VBAR_EL1, or same with 2 , 3
