@@ -15,7 +15,7 @@ SECTIONS = {
     .text.boot : {
         __text_boot_start = .;
         KEEP(*(.text.boot))
-        . = ALIGN(8)
+        . = ALIGN(8);
         __text_boot_end = .;
     }> RAM 
     // Executable code should be placed next
