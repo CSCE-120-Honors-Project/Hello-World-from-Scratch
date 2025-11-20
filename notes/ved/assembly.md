@@ -30,4 +30,4 @@ ldr: load register
 * eg: ldr x0, =0x40000000
 mov: move
 * copy form one reg to another
-* mov x0, x0   same as x0 = x1
+* mov x0, x1   same as x0 = x1
