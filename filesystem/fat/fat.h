@@ -79,10 +79,10 @@ int fat_init();
 /**
  * @brief Mounts a FAT32 partition located at the specified LBA.
  *
- * @param partition_lba_start The starting LBA of the FAT32 partition.
+ * @param partition_number The partition number to mount (0-3).
  * @return 0 on success, negative value on error.
  */
-int fat_mount(uint32_t partition_lba_start);
+int fat_mount(uint8_t partition_number);
 
 /**
  * @brief Opens a file in the FAT32 filesystem.
