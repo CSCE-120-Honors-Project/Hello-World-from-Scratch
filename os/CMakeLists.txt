@@ -4,7 +4,7 @@ project(os)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # creates os executable
-add_executable(${PROJECT_NAME} STATIC main.c start.s)
+add_executable(${PROJECT_NAME} main.c start.s)
 
 # link the libraries
 target_link_libraries(os.elf uart)
