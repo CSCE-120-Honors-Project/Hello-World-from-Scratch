@@ -38,7 +38,7 @@ clear_bss_loop:
     b clear_bss_loop // continue the loop
 bss_cleared:
     bl main // branch with link to main.c
-    // if main somehow returns, processor will go to hang becuase its the next line, then itll get stuck there
+    // if main somehow returns, processor will go to hang because its the next line, then itll get stuck there
 hang:
     wfi
     b hang
