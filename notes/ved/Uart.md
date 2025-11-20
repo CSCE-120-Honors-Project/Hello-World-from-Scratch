@@ -10,7 +10,7 @@ since its already initialized, we only need to deal with these things:
 	* bit 5: transmit fifo full
 		* 1 means its full and we cant send
 		* 0 means space available and we can write to it
-	* bit 6: receive fifo empty
+	* bit 4: receive fifo empty
 		* 1 means theres no data to read
 		* 0 means theres data to read
 	* offset: 0x018
