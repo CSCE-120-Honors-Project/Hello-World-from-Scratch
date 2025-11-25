@@ -3,7 +3,7 @@
 	* higher number = higher power
 
 EL0: unprivileged- weakest one for user applications
-cant use system registers, hardware directly, MMU config
+can't use system registers, hardware directly, MMU config
 has to use system calls to request stuff
 
 EL1: privileged (OS kernel)
