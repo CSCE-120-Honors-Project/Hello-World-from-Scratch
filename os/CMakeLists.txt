@@ -20,7 +20,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # create binary
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${OBJCOPY} -O binary # using variable objcopy because it varies by host operating system
+    COMMAND ${CROSS_OBJCOPY} -O binary # using variable objcopy because it varies by host operating system
             $<TARGET_FILE:${PROJECT_NAME}>
             ${CMAKE_BINARY_DIR}/os.bin
     COMMENT "Creating os.bin from os.elf"
