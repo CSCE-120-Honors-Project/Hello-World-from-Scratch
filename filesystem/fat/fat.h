@@ -120,6 +120,6 @@ int fat_open(const char* filename, fat_file* file);
  * @param bytes_read Pointer to a size_t variable where the number of bytes actually read will be stored.
  * @return 0 on success, negative value on error (e.g., read beyond end of file).
  */
-int fat_read(fat_file* file, uint8_t* buffer, size_t size, size_t* bytes_read);
+int fat_read(const fat_file* file, uint8_t* buffer, size_t size, size_t* bytes_read);
 
 #endif

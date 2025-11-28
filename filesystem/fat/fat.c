@@ -27,6 +27,11 @@ static inline int read_cluster(uint32_t cluster, fat_directory_entry* dir_entry)
     return vio_read_sectors(cluster_to_lba(cluster), sectors_per_cluster, (uint8_t*)dir_entry);
 }
 
+// Get the starting cluster of a directory entry
+static inline uint32_t get_cluster(const fat_directory_entry* entry) {
+    return (entry->first_cluster_high << 16) | entry->first_cluster_low;
+}
+
 // Compare two filenames
 static bool filename_compare(const char* name1, const char* name2) {
     for (int i = 0; i < 11; i++) {
@@ -36,6 +41,9 @@ static bool filename_compare(const char* name1, const char* name2) {
     }
     return true;
 }
+
+
+// Library functions
 
 // NOTE: This only works for short filenames (8.3 format)
 void format_filename(const char* src, char* dest) {
@@ -103,18 +111,92 @@ int fat_mount(uint8_t partition_number) {
     return 0;
 }
 
-int fat_open(const char* filename, fat_file* file) {
-    char current_filename[11] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
-    uint32_t current_cluster = root_cluster;
-    // Copy filename for comparison
+static int fat_open_r(
+        const char* filename, 
+        fat_file* file, 
+        unsigned long cluster, 
+        fat_directory_entry* current_dir
+    ) {
 
-    while(!filename_compare(filename, current_filename)) {
-        fat_directory_entry dir_entry;
-        // TODO: Unfuck this to actually iterate through directory entries
-        // Use what Perplexity explained to help with this
-        read_cluster(current_cluster, &dir_entry);
-        format_filename((const char*)dir_entry.name, current_filename);
+    // Zero out current_dir buffer
+    for (
+            size_t i = 0;
+            i < (sectors_per_cluster * FAT_SECTOR_SIZE) / sizeof(fat_directory_entry);
+            i++
+        ) {
+        current_dir[i] = (fat_directory_entry){0};
     }
 
+    // Read the directory entries from the specified cluster
+    if (read_cluster(cluster, current_dir) < 0) {
+        // Read failed
+        return -1;
+    }
+    
+    // Search for the file in the directory entries
+    for (
+            size_t i = 0; 
+            i < (sectors_per_cluster * FAT_SECTOR_SIZE) / sizeof(fat_directory_entry);
+            i++
+        ) {
+        if (current_dir[i].name[0] == 0x00) {
+            // No more entries, file not found
+            return -1;
+        }
+
+        if ((current_dir[i].attr & 0x0F) == 0x0F) {
+            // Long file name entry, skip
+            continue;
+        }
+
+        if (current_dir[i].name[0] == 0xE5) {
+            // Deleted file, skip
+            continue;
+        }
+        
+        // Check for edge case of 0x05 representing 0xE5
+        char compare_name[11];
+        format_filename((const char*)current_dir[i].name, compare_name);
+        if (current_dir[i].name[0] == 0x05) {
+            compare_name[0] = (char)0xE5;
+        }
+
+        if (filename_compare(compare_name, filename)) {
+            // File found
+            file->start_cluster = get_cluster(&current_dir[i]);
+            file->file_size = current_dir[i].file_size;
+            file->current_cluster = file->start_cluster;
+            file->is_open = false;
+
+            return 0;
+        }
+
+        // File found in recursive call
+        if (fat_open_r(
+                filename, 
+                file, 
+                get_cluster(&current_dir[i]), 
+                current_dir
+            ) == 0) {
+            return 0;
+        }
+    }
+
+    return -1; // File not found
+}
+
+int fat_open(const char* filename, fat_file* file) {
+    // Current directory buffer used for recursion
+    fat_directory_entry* current_dir;
+
+    return fat_open_r(
+        filename, 
+        file, 
+        root_cluster, 
+        current_dir
+    );
+}
+
+int fat_read(const fat_file* file, uint8_t* buffer, size_t size, size_t* bytes_read) {
     return 0;
 }
