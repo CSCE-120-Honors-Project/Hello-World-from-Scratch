@@ -194,6 +194,10 @@ static int fat_open_r(
 }
 
 int fat_open(const char* filename, fat_file* file) {
+    if (file == NULL || filename == NULL) {
+        return -1; // Invalid parameters
+    }
+
     // Current directory buffer used for recursion
     fat_directory_entry current_dir[(FAT_SECTOR_SIZE * sectors_per_cluster) / sizeof(fat_directory_entry)];
 
@@ -206,6 +210,10 @@ int fat_open(const char* filename, fat_file* file) {
 }
 
 int fat_read(fat_file* file, uint8_t* buffer) {
+    if (file == NULL || buffer == NULL) {
+        return -1; // Invalid parameters
+    }
+
     if (!file->is_open) {
         return -1; // File not open
     }
