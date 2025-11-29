@@ -162,6 +162,11 @@ static int fat_open_r(
         }
 
         if (filename_compare(compare_name, filename)) {
+            if (current_dir[i].attr & 0x10) {
+                // Is a directory, cannot open as file
+                return -1;
+            }
+
             // File found
             file->start_cluster = get_cluster(&current_dir[i]);
             file->file_size = current_dir[i].file_size;
@@ -172,12 +177,15 @@ static int fat_open_r(
         }
 
         // File found in recursive call
-        if (fat_open_r(
-                filename, 
-                file, 
-                get_cluster(&current_dir[i]), 
-                current_dir
-            ) == 0) {
+        if (
+                current_dir[i].attr & 0x10 && // Is a directory
+                fat_open_r(
+                    filename, 
+                    file, 
+                    get_cluster(&current_dir[i]), 
+                    current_dir
+                ) == 0
+            ) {
             return 0;
         }
     }
