@@ -114,8 +114,7 @@ int fat_mount(uint8_t partition_number) {
 static int fat_open_r(
         const char* filename, 
         fat_file* file, 
-        uint32_t cluster, 
-        fat_directory_entry* current_dir
+        uint32_t cluster
     ) {
 
     // Current directory buffer used for recursion
