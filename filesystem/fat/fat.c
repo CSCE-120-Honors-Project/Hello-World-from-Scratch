@@ -89,7 +89,7 @@ int fat_mount(uint8_t partition_number) {
     }
 
     fat_partition_entry* partition = &mbr.partitions[partition_number];
-    if (partition->type != 0x0B || partition->type != 0x0C) {
+    if (partition->type != 0x0B && partition->type != 0x0C) {
         return -1; // Not a FAT32 partition
     }
 
