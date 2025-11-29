@@ -166,7 +166,7 @@ static int fat_open_r(
             file->start_cluster = get_cluster(&current_dir[i]);
             file->file_size = current_dir[i].file_size;
             file->current_cluster = file->start_cluster;
-            file->is_open = false;
+            file->is_open = true;
 
             return 0;
         }
