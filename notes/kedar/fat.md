@@ -91,6 +91,8 @@ partition table.
 The Volume ID contains important information about the FAT32 file system, including:
 | Name | Official Name | Offset (bytes) | Size (bytes) | Description |
 |------|----------------|----------------|---------------|-------------|
+| Jump Instruction | BS_jmpBoot | 0x00 (0) | 3 | Jump instruction to boot code (can be ignored for the driver). |
+| OEM Name | BS_OEMName | 0x03 (3) | 8 | OEM identifier (can be ignored for the driver). |
 | Bytes Per Sector | BPB_BytsPerSec | 0x0B (11) | 2 | Number of bytes per sector (typically 512). |
 | Sectors Per Cluster | BPB_SecPerClus | 0x0D (13) | 1 | Number of sectors per cluster (must be a power of 2 up to 128). |
 | Reserved Sector Count | BPB_RsvdSecCnt | 0x0E (14) | 2 | Number of reserved sectors before the first FAT (typically 32 for FAT32). |

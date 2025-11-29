@@ -8,9 +8,9 @@
 volatile vio_mmio_registers* vio_regs = (vio_mmio_registers*)VIO_BASE;
 static vio_descriptor vio_descriptor_table[VIOQUEUE_SIZE];
 static vioqueue_available_ring available_ring;
-static vioqueue_used_ring used_ring;
+static volatile vioqueue_used_ring used_ring;
 static vio_block_request vio_request_header;
-static uint8_t vio_request_status;
+static volatile uint8_t vio_request_status;
 static uint16_t last_used_index = 0;
 
 int vio_init() {
@@ -88,7 +88,7 @@ int vio_init() {
 
 int vio_read_sector(uint32_t sector, uint8_t* buffer) {
     // Prepare block request
-    vio_request_header.type = VIO_BLOCK_REQUEST_TYPE_WRITE;
+    vio_request_header.type = VIO_BLOCK_REQUEST_TYPE_READ;
     vio_request_header.reserved = 0;
     vio_request_header.sector = sector;
 
