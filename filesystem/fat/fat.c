@@ -4,10 +4,10 @@
 static fat_master_boot_record mbr;
 static fat_volume_id volume_id;
 
-static unsigned long fat_begin_lba;
-static unsigned long cluster_start_lba;
+static uint32_t fat_begin_lba;
+static uint32_t cluster_start_lba;
 static uint8_t sectors_per_cluster;
-static unsigned long root_cluster;
+static uint32_t root_cluster;
 
 
 // Helper functions
@@ -23,7 +23,7 @@ static inline uint32_t cluster_size_bytes() {
 }
 
 // Read a cluster from disk into a buffer
-static inline int read_cluster(uint32_t cluster, fat_directory_entry* dir_entry) {
+static inline int read_dir_cluster(uint32_t cluster, fat_directory_entry* dir_entry) {
     return vio_read_sectors(cluster_to_lba(cluster), sectors_per_cluster, (uint8_t*)dir_entry);
 }
 
@@ -114,7 +114,7 @@ int fat_mount(uint8_t partition_number) {
 static int fat_open_r(
         const char* filename, 
         fat_file* file, 
-        unsigned long cluster, 
+        uint32_t cluster, 
         fat_directory_entry* current_dir
     ) {
 
@@ -128,7 +128,7 @@ static int fat_open_r(
     }
 
     // Read the directory entries from the specified cluster
-    if (read_cluster(cluster, current_dir) < 0) {
+    if (read_dir_cluster(cluster, current_dir) < 0) {
         // Read failed
         return -1;
     }
@@ -187,7 +187,7 @@ static int fat_open_r(
 
 int fat_open(const char* filename, fat_file* file) {
     // Current directory buffer used for recursion
-    fat_directory_entry* current_dir;
+    fat_directory_entry current_dir[(FAT_SECTOR_SIZE * sectors_per_cluster) / sizeof(fat_directory_entry)];
 
     return fat_open_r(
         filename, 
@@ -197,6 +197,37 @@ int fat_open(const char* filename, fat_file* file) {
     );
 }
 
-int fat_read(const fat_file* file, uint8_t* buffer, size_t size, size_t* bytes_read) {
+int fat_read(fat_file* file, uint8_t* buffer) {
+    if (!file->is_open) {
+        return -1; // File not open
+    }
+    
+    uint32_t current_cluster = file->current_cluster;
+    while (current_cluster <= 0x0FFFFFF8) {
+        // Read the current cluster into the buffer
+        if (vio_read_sectors(
+                cluster_to_lba(current_cluster), 
+                sectors_per_cluster, 
+                buffer
+            ) < 0) {
+            return -1; // Read failed
+        }
+
+        buffer += cluster_size_bytes();
+
+        // Read the FAT to get the next cluster
+        uint32_t fat[volume_id.fat_size_32 * FAT_SECTOR_SIZE / 4];
+        if (vio_read_sectors(
+                fat_begin_lba, 
+                volume_id.fat_size_32, 
+                (uint8_t*)fat
+            ) < 0) {
+            return -1; // Read failed
+        }
+        
+        // Get the next cluster from the FAT
+        current_cluster = fat[current_cluster];
+    }
+
     return 0;
 }

@@ -115,11 +115,9 @@ int fat_open(const char* filename, fat_file* file);
  * @brief Reads data from an open FAT32 file.
  *
  * @param file Pointer to the fat_file structure representing the open file.
- * @param buffer Pointer to a buffer where the read data will be stored.
- * @param size Number of bytes to read.
- * @param bytes_read Pointer to a size_t variable where the number of bytes actually read will be stored.
+ * @param buffer Pointer to a buffer where the read data will be stored. Ensure it is large enough to hold the data.
  * @return 0 on success, negative value on error (e.g., read beyond end of file).
  */
-int fat_read(const fat_file* file, uint8_t* buffer, size_t size, size_t* bytes_read);
+int fat_read(fat_file* file, uint8_t* buffer);
 
 #endif
