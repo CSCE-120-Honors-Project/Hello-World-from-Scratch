@@ -156,7 +156,11 @@ static int fat_open_r(
         
         // Check for edge case of 0x05 representing 0xE5
         char compare_name[11];
-        format_filename((const char*)current_dir[i].name, compare_name);
+        // Copy name for comparison
+        for (size_t j = 0; j < 11; j++) {
+            compare_name[j] = current_dir[i].name[j];
+        }
+
         if (current_dir[i].name[0] == 0x05) {
             compare_name[0] = (char)0xE5;
         }
