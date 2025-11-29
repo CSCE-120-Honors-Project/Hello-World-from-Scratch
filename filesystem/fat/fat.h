@@ -45,7 +45,7 @@ typedef struct __attribute__((packed)) {
 
 
 typedef struct __attribute__((packed)) {
-    uint8_t name[11]; // 0x00 - 0x0A: File name (8.3 format)
+    uint8_t name[11]; // 0x00 - 0x0A: File name (8.3 format without the dot)
     uint8_t attr; // 0x0B: File attributes
     uint8_t reserved; // 0x0C: Reserved for Windows NT
     uint8_t creation_time_tenths; // 0x0D: Creation time in tenths of a second
