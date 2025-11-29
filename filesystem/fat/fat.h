@@ -115,9 +115,13 @@ int fat_open(const char* filename, fat_file* file);
 /**
  * @brief Reads data from an open FAT32 file.
  *
+ * This function reads the entire file starting from the current cluster position
+ * and continues through the FAT chain until reaching the end-of-chain marker.
+ *
  * @param file Pointer to the fat_file structure representing the open file.
- * @param buffer Pointer to a buffer where the read data will be stored. Ensure it is large enough to hold the data.
- * @return 0 on success, negative value on error (e.g., read beyond end of file).
+ * @param buffer Pointer to a buffer where the read data will be stored. 
+ *               Must be large enough to hold the entire file (at least file_size bytes).
+ * @return 0 on success, negative value on error (e.g., I/O error).
  */
 int fat_read(fat_file* file, uint8_t* buffer);
 
