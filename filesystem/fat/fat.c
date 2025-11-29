@@ -203,7 +203,8 @@ int fat_read(fat_file* file, uint8_t* buffer) {
     }
     
     uint32_t current_cluster = file->current_cluster;
-    while (current_cluster <= 0x0FFFFFF8) {
+    // FAT32 EOC markers are 0x0FFFFFF8 through 0x0FFFFFFF
+    while (current_cluster < 0x0FFFFFF8) {
         // Read the current cluster into the buffer
         if (vio_read_sectors(
                 cluster_to_lba(current_cluster), 
@@ -215,18 +216,22 @@ int fat_read(fat_file* file, uint8_t* buffer) {
 
         buffer += cluster_size_bytes();
 
-        // Read the FAT to get the next cluster
-        uint32_t fat[volume_id.fat_size_32 * FAT_SECTOR_SIZE / 4];
-        if (vio_read_sectors(
-                fat_begin_lba, 
-                volume_id.fat_size_32, 
-                (uint8_t*)fat
+        // Calculate which sector of the FAT contains the entry for the current cluster
+        uint32_t fat_sector_offset = (current_cluster * 4) / FAT_SECTOR_SIZE;
+        uint32_t fat_entry_index = current_cluster % (FAT_SECTOR_SIZE / sizeof(uint32_t));
+
+        // Read the specific FAT sector
+        // Use uint32_t array to ensure 4-byte alignment
+        uint32_t fat_sector[FAT_SECTOR_SIZE / sizeof(uint32_t)];
+        if (vio_read_sector(
+                fat_begin_lba + fat_sector_offset, 
+                (uint8_t*)fat_sector
             ) < 0) {
             return -1; // Read failed
         }
         
-        // Get the next cluster from the FAT
-        current_cluster = fat[current_cluster];
+        // Get the next cluster from the FAT sector
+        current_cluster = fat_sector[fat_entry_index] & 0x0FFFFFFF;
     }
 
     return 0;
