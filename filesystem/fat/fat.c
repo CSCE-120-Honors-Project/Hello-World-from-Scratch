@@ -118,14 +118,8 @@ static int fat_open_r(
         fat_directory_entry* current_dir
     ) {
 
-    // Zero out current_dir buffer
-    for (
-            size_t i = 0;
-            i < (sectors_per_cluster * FAT_SECTOR_SIZE) / sizeof(fat_directory_entry);
-            i++
-        ) {
-        current_dir[i] = (fat_directory_entry){0};
-    }
+    // Current directory buffer used for recursion
+    fat_directory_entry current_dir[(FAT_SECTOR_SIZE * sectors_per_cluster) / sizeof(fat_directory_entry)];
 
     // Read the directory entries from the specified cluster
     if (read_dir_cluster(cluster, current_dir) < 0) {
@@ -165,12 +159,7 @@ static int fat_open_r(
             compare_name[0] = (char)0xE5;
         }
 
-        if (filename_compare(compare_name, filename)) {
-            if (current_dir[i].attr & 0x10) {
-                // Is a directory, cannot open as file
-                return -1;
-            }
-
+        if (filename_compare(compare_name, filename) && !(current_dir[i].attr & 0x10)) {
             // File found
             file->start_cluster = get_cluster(&current_dir[i]);
             file->file_size = current_dir[i].file_size;
@@ -202,14 +191,10 @@ int fat_open(const char* filename, fat_file* file) {
         return -1; // Invalid parameters
     }
 
-    // Current directory buffer used for recursion
-    fat_directory_entry current_dir[(FAT_SECTOR_SIZE * sectors_per_cluster) / sizeof(fat_directory_entry)];
-
     return fat_open_r(
         filename, 
         file, 
-        root_cluster, 
-        current_dir
+        root_cluster
     );
 }
 
