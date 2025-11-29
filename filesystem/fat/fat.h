@@ -37,8 +37,9 @@ typedef struct __attribute__((packed)) {
     uint8_t num_fats; // 0x10: Number of FATs (usually 2)
     uint8_t reserved_0[19]; // 0x11 - 0x23: Reserved data not needed for FAT32 driver
     uint32_t fat_size_32; // 0x24 - 0x27: Size of each FAT in sectors
+    uint16_t reserved_1[2]; // 0x28 - 0x2B: Reserved data not needed for FAT32 driver
     uint32_t root_cluster; // 0x2C - 0x2F: Root directory starting cluster
-    uint8_t reserved_1[462]; // 0x30 - 0x1FD: Reserved data not needed for FAT32 driver
+    uint8_t reserved_2[462]; // 0x30 - 0x1FD: Reserved data not needed for FAT32 driver
     uint16_t boot_signature; // 0x1FE - 0x1FF: Boot sector signature (0x55AA)
 } fat_volume_id;
 
