@@ -25,7 +25,7 @@ SECTIONS { /*removed the "=" */
         *(.text*)
         . = ALIGN(8);
         __text_end = .;
-    } > RAM
+    } > FLASH
     
     /* Literals and data are placed last */
     .rodata : {
@@ -33,14 +33,14 @@ SECTIONS { /*removed the "=" */
         *(.rodata*)
         . = ALIGN(8);
         __rodata_end = .;
-    } > RAM
+    } > FLASH
     
     .data : {
         __data_start = .;
         *(.data*)
         . = ALIGN(8);
         __data_end = .;
-    } > RAM 
+    } > FLASH 
     
     /* Reserve space for, but don't copy, the .bss section for uninitialized data */
     .bss (NOLOAD) : {

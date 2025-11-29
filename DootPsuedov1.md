@@ -10,6 +10,22 @@ DootPsuedov1.md
 .global _start
 ```
 
+//c++ stuff so far
+
+// code will start by finding the size of boot  
+// Declare the symbols (they're not variables, just addresses)
+extern char __text_boot_start;
+extern char __text_boot_end;
+
+// Get their addresses
+char *boot_code_start = &__text_boot_start;
+char *boot_code_end = &__text_boot_end;
+
+// Calculate bootloader size
+size_t boot_size = (size_t)boot_code_end - (size_t)boot_code_start;
+
+
+
 // what perplex told me 
 
 MUST HAVE (Minimum Viable Bootloader)
