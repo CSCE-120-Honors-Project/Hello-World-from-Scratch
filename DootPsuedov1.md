@@ -44,12 +44,23 @@ Phase 1: First Stage (Assembly)
 
 ✅ Hang loop if main returns
     // what to do if it actually finishes the call (kill itself)
-Phase 2: Second Stage (C++)
+
+Phase 2: Second Stage (C++) //veds code 
 ✅ UART initialization
 
-✅ Print "Bootloader Started" message 
+✅ Print "Bootloader Started" message  
     // "hello world "
 ✅ Hang in infinite loop
+
+
+what vinux needs (reminder checklist):
+so this file needs:
+- _start label for entry point
+- setup stack pointer
+- clear bss because c requires uninitialized variables to be cleared
+- call to c main func
+- hang in case of main returning
+*/ 
 
 
 
