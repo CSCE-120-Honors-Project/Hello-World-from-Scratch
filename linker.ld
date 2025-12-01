@@ -1,4 +1,4 @@
-ENTRY(main)
+ENTRY(_start)
 
 MEMORY {
     // Initialize flash memory, where bootloaders are typically stored
@@ -9,13 +9,13 @@ MEMORY {
     KERNEL (rwx): ORIGIN = 0x40080000, LENGTH = 16M
 }
 
-// Each section has doubleword alignment to match Aarch64 alignemnt standard
+// Each section has doubleword alignment to match Aarch64 alignment standard
 SECTIONS = {
     // Boot code for the bootloader should be placed at the start of load memory
     .text.boot : {
         __text_boot_start = .;
         KEEP(*(.text.boot))
-        . = ALIGN(8)
+        . = ALIGN(8);
         __text_boot_end = .;
     }> RAM 
     // Executable code should be placed next

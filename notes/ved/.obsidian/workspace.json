@@ -1,56 +1,41 @@
 {
   "main": {
-    "id": "a2e48e02d6f0a30c",
+    "id": "64a9f9143744bee3",
     "type": "split",
     "children": [
       {
-        "id": "bdab9c2bf8bed0f3",
+        "id": "aaa5af5b1d42f4a4",
         "type": "tabs",
         "children": [
           {
-            "id": "d9ace67b28b5da71",
+            "id": "5a97db823fceba44",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "assembly.md",
+                "file": "Uart.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "assembly"
-            }
-          },
-          {
-            "id": "5411605ac927b65e",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "dotsection.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "dotsection"
+              "title": "Uart"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
   },
   "left": {
-    "id": "f30f3d550b030b09",
+    "id": "d284f7d4c809ab46",
     "type": "split",
     "children": [
       {
-        "id": "db9be99246b98a12",
+        "id": "dd632feee361a4e5",
         "type": "tabs",
         "children": [
           {
-            "id": "44aaddb56c9f58f7",
+            "id": "3434458c30222d56",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -63,7 +48,7 @@
             }
           },
           {
-            "id": "485268702bc22f51",
+            "id": "a73cba677249e658",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -80,7 +65,7 @@
             }
           },
           {
-            "id": "8f3e0f0da320ca13",
+            "id": "00ea7ed288e5fd8e",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -96,20 +81,20 @@
     "width": 200
   },
   "right": {
-    "id": "d8cbc99eed4e9747",
+    "id": "55f9a5f6bb051faa",
     "type": "split",
     "children": [
       {
-        "id": "ca651ab071db24f7",
+        "id": "18911957ee5c9b96",
         "type": "tabs",
         "children": [
           {
-            "id": "fc73cd95ec84784b",
+            "id": "cf2c203d8eee03e9",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
-                "file": "reset.md",
+                "file": "files.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -119,25 +104,25 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for reset"
+              "title": "Backlinks for files"
             }
           },
           {
-            "id": "d1944158ab6897c2",
+            "id": "91845ef9b3ccbe70",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "reset.md",
+                "file": "files.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from reset"
+              "title": "Outgoing links from files"
             }
           },
           {
-            "id": "13810e70426b07fc",
+            "id": "0fc25d5d6e58f372",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -152,18 +137,18 @@
             }
           },
           {
-            "id": "af5491bbc65a0817",
+            "id": "2d1dfad8c95ca522",
             "type": "leaf",
             "state": {
               "type": "outline",
               "state": {
-                "file": "reset.md",
+                "file": "files.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of reset"
+              "title": "Outline of files"
             }
           }
         ]
@@ -175,28 +160,39 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "bases:Create new base": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
       "canvas:Create new canvas": false,
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
-      "command-palette:Open command palette": false
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
     }
   },
-  "active": "5411605ac927b65e",
+  "active": "5a97db823fceba44",
   "lastOpenFiles": [
-    "assembly.md",
-    "dotsection.md",
-    "qemu.md",
+    "Uart.md",
+    "bss section.md",
+    "stack.md",
+    "memory ROOT.md",
+    "heap.md",
+    "data section.md",
+    "rodata section.md",
+    "[[rodata.md",
+    "[rodata.md",
+    "partitions.md",
+    "text section.md",
+    "rodata.md",
+    "Untitled 1.md",
+    "linker for os stuff.md",
     "fake hard drive.md",
-    "memory.md",
+    "files.md",
+    "ROOT.md",
     "reset.md",
-    "Untitled 2.md",
-    "startup to boot.md",
-    "images",
-    "images/Pasted image 20251001105700.png",
-    "1b3bb193.png",
-    "images/Pasted image 20251001104402.png"
+    "OS.md",
+    "qemu.md",
+    "assembly.md",
+    "exceptions.md",
+    "().md"
   ]
 }
