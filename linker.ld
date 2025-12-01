@@ -1,4 +1,5 @@
 ENTRY(_start)
+ENTRY(_start)
 
 MEMORY {
     /* Initialize flash memory, where bootloaders are typically stored */
@@ -15,6 +16,7 @@ SECTIONS { /*removed the "=" */
     .text.boot : {
         __text_boot_start = .; /* tells the address of boot start is current memory, tells the OS to not touch it givev 2^8 bits, make this the ending memory*/
         KEEP(*(.text.boot))
+        . = ALIGN(8);
         . = ALIGN(8);
         __text_boot_end = .;
     } > RAM 
