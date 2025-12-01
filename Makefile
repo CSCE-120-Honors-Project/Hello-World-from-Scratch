@@ -53,14 +53,18 @@ delete: clean
 
 virtualize:
 	qemu-system-aarch64 -M virt -cpu cortex-a53 -nographic -kernel $(BINARY_PREFIX).bin
-
+	
 virtualizeVinux:
 	#qemu-system-aarch64 -M virt -cpu cortex-a53 
-	#-kernel $(BINARY_PREFIX).bin*
+	#
 	qemu-system-aarch64 -M virt -cpu cortex-a53 -m 128M -nographic \
-  	-device loader,file=bootloader.bin,addr=0x00000000,cpu-num=0 \
-	-drive file=disk.img,format=raw, \ 
-	-nographic
+  	-kernel $(BINARY_PREFIX).bin \
+	-drive file=disk.img,if=none,format=raw,id=hd0 \
+    -device virtio-blk-device,drive=hd0
+	-nographic \
+	
+    
+
 	
 
 virtualizen:
