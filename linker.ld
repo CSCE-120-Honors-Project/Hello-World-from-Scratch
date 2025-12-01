@@ -1,4 +1,4 @@
-ENTRY(main)
+ENTRY(_start)
 
 MEMORY {
     // Initialize flash memory, where bootloaders are typically stored
