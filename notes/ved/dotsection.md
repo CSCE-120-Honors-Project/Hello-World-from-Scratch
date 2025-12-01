@@ -1,6 +1,6 @@
 ".bss" block started by symbol
 memory for uninitialized dat
-auto assigned to zero when program start
+automatically assigned to zero when the program starts
 doesnt take space in bin file, only in real memory at runtime
 
 .align 3
