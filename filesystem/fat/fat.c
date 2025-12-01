@@ -174,8 +174,7 @@ static int fat_open_r(
                 fat_open_r(
                     filename, 
                     file, 
-                    get_cluster(&current_dir[i]), 
-                    current_dir
+                    get_cluster(&current_dir[i])
                 ) == 0
             ) {
             return 0;
