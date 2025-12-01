@@ -12,7 +12,7 @@ find_program(CROSS_GCC
     NAMES 
         aarch64-linux-gnu-gcc           # Linux (Ubuntu/Debian)
         aarch64-none-linux-gnu-gcc      # ARM official / Windows
-        aarch64-unknown-linux-gnu-gcc   # macOS Homebrew
+        aarch64-elf-gcc   # macOS Homebrew
 )
 
 # If not found, show error with helpful message
