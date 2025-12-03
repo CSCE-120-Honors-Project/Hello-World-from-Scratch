@@ -1,5 +1,4 @@
 ENTRY(_start)
-ENTRY(_start)
 
 MEMORY {
     /* Initialize flash memory, where bootloaders are typically stored */
@@ -11,39 +10,34 @@ MEMORY {
 }
 
 /* Each section has doubleword alignment to match Aarch64 alignment standard */
-SECTIONS { /*removed the "=" */
+SECTIONS {
     /* Boot code for the bootloader should be placed at the start of load memory */
     .text.boot : {
-        __text_boot_start = .; /* tells the address of boot start is current memory, tells the OS to not touch it givev 2^8 bits, make this the ending memory*/
+        __text_boot_start = .;
         KEEP(*(.text.boot))
         . = ALIGN(8);
-        . = ALIGN(8);
         __text_boot_end = .;
-    } > RAM 
-    
+    }> RAM 
     /* Executable code should be placed next */
     .text : {
         __text_start = .;
         *(.text*)
         . = ALIGN(8);
         __text_end = .;
-    } > FLASH
-    
+    }> RAM
     /* Literals and data are placed last */
     .rodata : {
         __rodata_start = .;
         *(.rodata*)
         . = ALIGN(8);
         __rodata_end = .;
-    } > FLASH
-    
+    }> RAM
     .data : {
         __data_start = .;
         *(.data*)
         . = ALIGN(8);
         __data_end = .;
-    } > FLASH 
-    
+    }> RAM 
     /* Reserve space for, but don't copy, the .bss section for uninitialized data */
     .bss (NOLOAD) : {
         __bss_start = .;
@@ -51,19 +45,5 @@ SECTIONS { /*removed the "=" */
         *(COMMON)
         . = ALIGN(8);
         __bss_end = .;
-    } > RAM
+    }> RAM
 }
-
-/*
-JUST KIDDING
-WARNING EVERY SINGLE CODE THAT GETS LINKED NEEDS TO USE 
-At the end , after uart_putc 
-
-.section .bss
-.align 4
-.space 4096
-.global stack_top 
-stack_top:
-
-*/
-

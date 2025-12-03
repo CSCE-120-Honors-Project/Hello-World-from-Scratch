@@ -1,9 +1,8 @@
 #include "vio.h"
-
+#include "uart.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-
 
 volatile vio_mmio_registers* vio_regs = (vio_mmio_registers*)VIO_BASE;
 
@@ -32,8 +31,14 @@ int vio_init() {
     }
 
     // Check if it's a VirtIO device
-    if (vio_regs->magic_value != VIO_MAGIC_VALUE) {
-        return -1; // Not a VirtIO device
+    uint32_t magic = vio_regs->magic_value;
+    uart_puts("DEBUG: VIO magic = 0x");
+    uart_print_hex(magic);
+    uart_puts("\n\r");
+    
+    if (magic != VIO_MAGIC_VALUE) {
+        uart_puts("DEBUG: Magic mismatch!\n\r");
+        return -1;
     }
     if (vio_regs->version != 1 && vio_regs->version != 2) {
         return -1; // Unsupported VirtIO version
@@ -45,6 +50,13 @@ int vio_init() {
     // Accept default device and driver features
     vio_regs->device_status |= VIO_DEVICE_STATUS_ACKNOWLEDGE;
     vio_regs->device_status |= VIO_DEVICE_STATUS_DRIVER;
+    uart_puts("DEBUG: Set DRIVER\n\r");
+
+    // For Legacy VirtIO (Version 1), we MUST write the guest page size
+    if (vio_regs->version == 1) {
+        uart_puts("DEBUG: Legacy VirtIO detected, writing GuestPageSize...\n\r");
+        vio_regs->guest_page_size = VIO_PAGE_SIZE;
+    }
     
     // Negotiate features (legacy VirtIO doesn't require VIRTIO_F_VERSION_1)
     vio_regs->selected_device_features = 0;
@@ -57,10 +69,23 @@ int vio_init() {
     }
 
     vio_regs->selected_queue = 0;
-    if (vio_regs->queue_maximum_size < 16) {
-        return -1; // Queue too small
+    uart_puts("DEBUG: Queue maximum size = ");
+    uart_print_dec(vio_regs->queue_maximum_size);
+    uart_puts("\n\r");
+    
+    // Use whatever queue size QEMU provides (minimum 1)
+    if (vio_regs->queue_maximum_size < 1) {
+        uart_puts("DEBUG: Queue size is 0!\n\r");
+        return -1;
     }
-    vio_regs->selected_queue_size = VIOQUEUE_SIZE;
+    
+    // Set to smaller size if QEMU can't handle 16
+    uint32_t queue_size = (vio_regs->queue_maximum_size < 16) ? vio_regs->queue_maximum_size : 16;
+    vio_regs->selected_queue_size = queue_size;
+    
+    uart_puts("DEBUG: Setting queue size to ");
+    uart_print_dec(queue_size);
+    uart_puts("\n\r");
     
     // Set up queue layout pointers
     vio_descriptor_table = vio_queue.descriptors;
