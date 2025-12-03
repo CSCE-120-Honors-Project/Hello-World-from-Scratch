@@ -3,9 +3,9 @@ ENTRY(_start)
 MEMORY {
     /* os code loads at QEMU default kernel load address for independent testing */
     /* correct location for final product */
-    /* KERNEL_RAM (rwx) : ORIGIN = 0x40080000, LENGTH = 128M */
+    KERNEL_RAM (rwx) : ORIGIN = 0x40080000, LENGTH = 128M
     /* move location to start of ram just for testing */
-    KERNEL_RAM (rwx) : ORIGIN = 0x40000000, LENGTH = 128M
+    /* KERNEL_RAM (rwx) : ORIGIN = 0x40000000, LENGTH = 128M */
 }
 
 /* Each section has doubleword alignment to match Aarch64 alignment standard */

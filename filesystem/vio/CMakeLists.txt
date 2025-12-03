@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.1.2)
+cmake_minimum_required(VERSION 3.15)
 project(vio)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

@@ -1,12 +1,17 @@
-cmake_minimum_required(VERSION 4.1.2)
-project(os)
+cmake_minimum_required(VERSION 3.15)
+project(os C ASM)
 
-set(CMAKE_C_STANDARD)
-set(CMAKE_C_STANDARD True)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # creates os executable
+
+# creates os executable
 add_executable(${PROJECT_NAME} main.c start.s)
+
+# Ensure the OS is linked with its own linker script (defines boot_stack_top, bss symbols)
+target_link_options(${PROJECT_NAME} PRIVATE "-T${CMAKE_CURRENT_SOURCE_DIR}/linker.ld" "-nostdlib")
 
 # Rename the physical output file (Optional but recommended for embedded)
 # This keeps the target name "os" inside CMake, but creates "os.elf" on disk.

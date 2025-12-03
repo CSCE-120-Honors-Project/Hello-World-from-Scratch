@@ -21,5 +21,5 @@ bss_cleared:
 .section ".bss"
 .align 4
 stack:
-    .space //TODO: HOW MUCH SPACE DOES THE BOOTLOADER STACK NEED???
+    .space 4096
 stack_top:
