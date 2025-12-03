@@ -107,8 +107,12 @@ disk: $(DISK_IMG)
 $(DISK_IMG):
 	@echo "Creating $(DISK_SIZE) disk image..."
 	dd if=/dev/zero of=$(DISK_IMG) bs=1M count=$(shell echo $(DISK_SIZE) | sed 's/M//') 2>/dev/null
-	@echo "Creating partition table..."
-	printf "n\np\n1\n\n\nt\nc\nw\n" | fdisk $(DISK_IMG) > /dev/null 2>&1 || true
+	@echo "Writing MBR and partition table..."
+	# Write MBR boot signature at offset 510 (0xAA55 in little-endian)
+	printf '\x55\xAA' | dd of=$(DISK_IMG) bs=1 seek=510 count=2 conv=notrunc 2>/dev/null
+	# Write partition entry at offset 446 (0x1BE)
+	# Partition 1: bootable, type 0x0C (FAT32 LBA), starts at LBA 2048, size calculated
+	printf '\x80\x00\x00\x00\x0C\x00\x00\x00\x00\x08\x00\x00\x00\x60\x03\x00' | dd of=$(DISK_IMG) bs=1 seek=446 count=16 conv=notrunc 2>/dev/null
 	@echo "Formatting as FAT32..."
 	# Create a loopback device (may require sudo on some systems)
 	# Alternative: use mformat from mtools package
