@@ -1,6 +1,15 @@
 #include "fat.h"
 #include "vio.h"
-#include "uart.h"
+
+// Simple memcpy implementation for freestanding environment
+static void* memcpy_local(void* dest, const void* src, size_t n) {
+    uint8_t* d = (uint8_t*)dest;
+    const uint8_t* s = (const uint8_t*)src;
+    for (size_t i = 0; i < n; i++) {
+        d[i] = s[i];
+    }
+    return dest;
+}
 
 static fat_master_boot_record mbr;
 static fat_volume_id volume_id;
@@ -10,26 +19,46 @@ static uint32_t cluster_start_lba;
 static uint8_t sectors_per_cluster;
 static uint32_t root_cluster;
 
-// ALL buffers static - NEVER on stack
-static uint32_t fat_sector_buffer[FAT_SECTOR_SIZE / sizeof(uint32_t)];
-static fat_directory_entry dir_cluster_buffer[16];
 
+// Helper functions for safe packed struct access
+
+// Safe read of uint32_t from potentially unaligned packed struct
+static inline uint32_t read_uint32_packed(const void* ptr) {
+    uint32_t value;
+    memcpy_local(&value, ptr, sizeof(uint32_t));
+    return value;
+}
+
+// Safe read of uint16_t from potentially unaligned packed struct
+static inline uint16_t read_uint16_packed(const void* ptr) {
+    uint16_t value;
+    memcpy_local(&value, ptr, sizeof(uint16_t));
+    return value;
+}
+
+// Helper functions
+
+// Convert a cluster number to its corresponding LBA
 static inline uint32_t cluster_to_lba(uint32_t cluster) {
     return cluster_start_lba + ((cluster - 2) * sectors_per_cluster);
 }
 
+// Get the size of a cluster in bytes
 static inline uint32_t cluster_size_bytes() {
     return sectors_per_cluster * FAT_SECTOR_SIZE;
 }
 
+// Read a cluster from disk into a buffer
 static inline int read_dir_cluster(uint32_t cluster, fat_directory_entry* dir_entry) {
     return vio_read_sectors(cluster_to_lba(cluster), sectors_per_cluster, (uint8_t*)dir_entry);
 }
 
+// Get the starting cluster of a directory entry
 static inline uint32_t get_cluster(const fat_directory_entry* entry) {
     return (entry->first_cluster_high << 16) | entry->first_cluster_low;
 }
 
+// Compare two filenames
 static bool filename_compare(const char* name1, const char* name2) {
     for (int i = 0; i < 11; i++) {
         if (name1[i] != name2[i]) {
@@ -39,36 +68,42 @@ static bool filename_compare(const char* name1, const char* name2) {
     return true;
 }
 
+
+// Library functions
+
+// NOTE: This only works for short filenames (8.3 format)
 void format_filename(const char* src, char* dest) {
+    // Clear destination
     for (int i = 0; i < 11; i++) {
         dest[i] = ' ';
     }
 
+    // Copy name part
     int i = 0;
     while (i < 8 && src[i] != '\0' && src[i] != '.') {
         dest[i] = src[i];
         i++;
     }
 
+    // If there's no extension, finish
     if (src[i] != '.') {
         return;
     }
 
-    i++;
+    i++; // Skip the dot
     for (int j = 8; j < 11 && src[i] != '\0'; j++) {
         dest[j] = src[i++];
     }
 }
 
 int fat_init() {
-    int result = vio_read_sector(0, (uint8_t*)&mbr);
-    
-    if (result < 0) {
+    // Read the MBR
+    if (vio_read_sector(0, (uint8_t*)&mbr) < 0) {
         return -1;
     }
 
     if (mbr.signature != FAT_BOOT_SIGNATURE) {
-        return -1;
+        return -1; // Invalid MBR signature
     }
 
     return 0;
@@ -76,118 +111,167 @@ int fat_init() {
 
 int fat_mount(uint8_t partition_number) {
     if (partition_number > 3) {
-        return -1;
+        return -1; // Invalid partition number
     }
 
     fat_partition_entry* partition = &mbr.partitions[partition_number];
-    
     if (partition->type != 0x0B && partition->type != 0x0C) {
-        return -1;
+        return -1; // Not a FAT32 partition
     }
 
-    int result = vio_read_sector(partition->start_lba, (uint8_t*)&volume_id);
+    // Read start_lba safely using memcpy to avoid unaligned access
+    uint32_t partition_start_lba = read_uint32_packed(&partition->start_lba);
     
-    if (result < 0) {
+    // Read the Volume ID sector
+    if (vio_read_sector(partition_start_lba, (uint8_t*)&volume_id) < 0) {
         return -1;
     }
 
-    if (volume_id.boot_signature != FAT_BOOT_SIGNATURE) {
-        return -1;
+    // Read fields safely using memcpy to avoid unaligned access
+    uint16_t boot_sig = read_uint16_packed(&volume_id.boot_signature);
+    
+    if (boot_sig != FAT_BOOT_SIGNATURE) {
+        return -1; // Invalid Volume ID signature
     }
 
-    fat_begin_lba = partition->start_lba + volume_id.reserved_sector_count;
-    cluster_start_lba = fat_begin_lba + (volume_id.num_fats * volume_id.fat_size_32);
+    // Read other fields safely
+    uint16_t reserved_sector_count = read_uint16_packed(&volume_id.reserved_sector_count);
+    uint32_t fat_size_32 = read_uint32_packed(&volume_id.fat_size_32);
+    uint32_t root_clust = read_uint32_packed(&volume_id.root_cluster);
+
+    // Initialize FAT32 filesystem parameters
+    fat_begin_lba = partition_start_lba + reserved_sector_count;
+    cluster_start_lba = fat_begin_lba + (volume_id.num_fats * fat_size_32);
     sectors_per_cluster = volume_id.sectors_per_cluster;
-    root_cluster = volume_id.root_cluster;
+    root_cluster = root_clust;
 
     return 0;
 }
 
-static int fat_open_r(const char* filename, fat_file* file, uint32_t cluster) {
-    if (read_dir_cluster(cluster, dir_cluster_buffer) < 0) {
+static int fat_open_r(
+        const char* filename, 
+        fat_file* file, 
+        uint32_t cluster
+    ) {
+
+    // Current directory buffer used for recursion
+    fat_directory_entry current_dir[(FAT_SECTOR_SIZE * sectors_per_cluster) / sizeof(fat_directory_entry)];
+
+    // Read the directory entries from the specified cluster
+    if (read_dir_cluster(cluster, current_dir) < 0) {
+        // Read failed
         return -1;
     }
     
-    size_t max_entries = 16;
-    
-    for (size_t i = 0; i < max_entries; i++) {
-        if (dir_cluster_buffer[i].name[0] == 0x00) {
+    // Search for the file in the directory entries
+    for (
+            size_t i = 0; 
+            i < (sectors_per_cluster * FAT_SECTOR_SIZE) / sizeof(fat_directory_entry);
+            i++
+        ) {
+        if (current_dir[i].name[0] == 0x00) {
+            // No more entries, file not found
             return -1;
         }
 
-        if ((dir_cluster_buffer[i].attr & 0x0F) == 0x0F) {
+        if ((current_dir[i].attr & 0x0F) == 0x0F) {
+            // Long file name entry, skip
             continue;
         }
 
-        if (dir_cluster_buffer[i].name[0] == 0xE5) {
+        if (current_dir[i].name[0] == 0xE5) {
+            // Deleted file, skip
             continue;
         }
         
+        // Check for edge case of 0x05 representing 0xE5
         char compare_name[11];
+        // Copy name for comparison
         for (size_t j = 0; j < 11; j++) {
-            compare_name[j] = dir_cluster_buffer[i].name[j];
+            compare_name[j] = current_dir[i].name[j];
         }
 
-        if (dir_cluster_buffer[i].name[0] == 0x05) {
+        if (current_dir[i].name[0] == 0x05) {
             compare_name[0] = (char)0xE5;
         }
 
-        if (filename_compare(compare_name, filename) && !(dir_cluster_buffer[i].attr & 0x10)) {
-            file->start_cluster = get_cluster(&dir_cluster_buffer[i]);
-            file->file_size = dir_cluster_buffer[i].file_size;
+        if (filename_compare(compare_name, filename) && !(current_dir[i].attr & 0x10)) {
+            // File found
+            file->start_cluster = get_cluster(&current_dir[i]);
+            file->file_size = current_dir[i].file_size;
             file->current_cluster = file->start_cluster;
             file->is_open = true;
 
             return 0;
         }
 
-        if (dir_cluster_buffer[i].attr & 0x10 && fat_open_r(filename, file, get_cluster(&dir_cluster_buffer[i])) == 0) {
+        // File found in recursive call
+        if (
+                current_dir[i].attr & 0x10 && // Is a directory
+                fat_open_r(
+                    filename, 
+                    file, 
+                    get_cluster(&current_dir[i])
+                ) == 0
+            ) {
             return 0;
         }
     }
 
-    return -1;
+    return -1; // File not found
 }
 
 int fat_open(const char* filename, fat_file* file) {
     if (file == NULL || filename == NULL) {
-        return -1;
+        return -1; // Invalid parameters
     }
 
-    return fat_open_r(filename, file, root_cluster);
+    return fat_open_r(
+        filename, 
+        file, 
+        root_cluster
+    );
 }
 
 int fat_read(fat_file* file, uint8_t* buffer) {
-    uart_puts("DEBUG fat_read: ENTER\n\r");
-    
     if (file == NULL || buffer == NULL) {
-        return -1;
+        return -1; // Invalid parameters
     }
 
     if (!file->is_open) {
-        return -1;
+        return -1; // File not open
     }
     
-    uint32_t clusters_read = 0;
-    
-    while (file->current_cluster < 0x0FFFFFF8 && clusters_read < 1000) {
-        if (vio_read_sectors(cluster_to_lba(file->current_cluster), sectors_per_cluster, buffer) < 0) {
-            return -1;
+    // FAT32 EOC markers are 0x0FFFFFF8 through 0x0FFFFFFF
+    while (file->current_cluster < 0x0FFFFFF8) {
+        // Read the current cluster into the buffer
+        if (vio_read_sectors(
+                cluster_to_lba(file->current_cluster), 
+                sectors_per_cluster, 
+                buffer
+            ) < 0) {
+            return -1; // Read failed
         }
 
         buffer += cluster_size_bytes();
-        clusters_read++;
 
+        // Calculate which sector of the FAT contains the entry for the current cluster
         uint32_t fat_sector_offset = (file->current_cluster * 4) / FAT_SECTOR_SIZE;
         uint32_t fat_entry_index = file->current_cluster % (FAT_SECTOR_SIZE / sizeof(uint32_t));
-        
-        if (vio_read_sector(fat_begin_lba + fat_sector_offset, (uint8_t*)fat_sector_buffer) < 0) {
-            return -1;
+
+        // Read the specific FAT sector
+        // Use uint32_t array to ensure 4-byte alignment
+        uint32_t fat_sector[FAT_SECTOR_SIZE / sizeof(uint32_t)];
+        if (vio_read_sector(
+                fat_begin_lba + fat_sector_offset, 
+                (uint8_t*)fat_sector
+            ) < 0) {
+            return -1; // Read failed
         }
         
-        file->current_cluster = fat_sector_buffer[fat_entry_index] & 0x0FFFFFFF;
+        // Get the next cluster from the FAT sector
+        file->current_cluster = fat_sector[fat_entry_index] & 0x0FFFFFFF;
     }
 
-    uart_puts("DEBUG fat_read: EXIT\n\r");
     return 0;
 }

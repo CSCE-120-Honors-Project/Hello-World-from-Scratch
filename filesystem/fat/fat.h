@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 #define FAT_SECTOR_SIZE 512
-#define FAT_BOOT_SIGNATURE 0xAA55  // Little-endian: bytes [0x55, 0xAA] = 0xAA55 as uint16_t
+#define FAT_BOOT_SIGNATURE 0xAA55
 
 #define FAT_PARTITION_TYPE_CHS 0x0B // FAT32 with CHS addressing
 #define FAT_PARTITION_TYPE_LBA 0x0C // FAT32 with LBA addressing
