@@ -1,6 +1,16 @@
 #include "fat.h"
 #include "vio.h"
 
+// Simple memcpy implementation for freestanding environment
+static void* memcpy_local(void* dest, const void* src, size_t n) {
+    uint8_t* d = (uint8_t*)dest;
+    const uint8_t* s = (const uint8_t*)src;
+    for (size_t i = 0; i < n; i++) {
+        d[i] = s[i];
+    }
+    return dest;
+}
+
 static fat_master_boot_record mbr;
 static fat_volume_id volume_id;
 
@@ -9,6 +19,22 @@ static uint32_t cluster_start_lba;
 static uint8_t sectors_per_cluster;
 static uint32_t root_cluster;
 
+
+// Helper functions for safe packed struct access
+
+// Safe read of uint32_t from potentially unaligned packed struct
+static inline uint32_t read_uint32_packed(const void* ptr) {
+    uint32_t value;
+    memcpy_local(&value, ptr, sizeof(uint32_t));
+    return value;
+}
+
+// Safe read of uint16_t from potentially unaligned packed struct
+static inline uint16_t read_uint16_packed(const void* ptr) {
+    uint16_t value;
+    memcpy_local(&value, ptr, sizeof(uint16_t));
+    return value;
+}
 
 // Helper functions
 
@@ -93,20 +119,31 @@ int fat_mount(uint8_t partition_number) {
         return -1; // Not a FAT32 partition
     }
 
+    // Read start_lba safely using memcpy to avoid unaligned access
+    uint32_t partition_start_lba = read_uint32_packed(&partition->start_lba);
+    
     // Read the Volume ID sector
-    if (vio_read_sector(partition->start_lba, (uint8_t*)&volume_id) < 0) {
+    if (vio_read_sector(partition_start_lba, (uint8_t*)&volume_id) < 0) {
         return -1;
     }
 
-    if (volume_id.boot_signature != FAT_BOOT_SIGNATURE) {
+    // Read fields safely using memcpy to avoid unaligned access
+    uint16_t boot_sig = read_uint16_packed(&volume_id.boot_signature);
+    
+    if (boot_sig != FAT_BOOT_SIGNATURE) {
         return -1; // Invalid Volume ID signature
     }
 
+    // Read other fields safely
+    uint16_t reserved_sector_count = read_uint16_packed(&volume_id.reserved_sector_count);
+    uint32_t fat_size_32 = read_uint32_packed(&volume_id.fat_size_32);
+    uint32_t root_clust = read_uint32_packed(&volume_id.root_cluster);
+
     // Initialize FAT32 filesystem parameters
-    fat_begin_lba = partition->start_lba + volume_id.reserved_sector_count;
-    cluster_start_lba = fat_begin_lba + (volume_id.num_fats * volume_id.fat_size_32);
+    fat_begin_lba = partition_start_lba + reserved_sector_count;
+    cluster_start_lba = fat_begin_lba + (volume_id.num_fats * fat_size_32);
     sectors_per_cluster = volume_id.sectors_per_cluster;
-    root_cluster = volume_id.root_cluster;
+    root_cluster = root_clust;
 
     return 0;
 }
@@ -174,8 +211,7 @@ static int fat_open_r(
                 fat_open_r(
                     filename, 
                     file, 
-                    get_cluster(&current_dir[i]), 
-                    current_dir
+                    get_cluster(&current_dir[i])
                 ) == 0
             ) {
             return 0;

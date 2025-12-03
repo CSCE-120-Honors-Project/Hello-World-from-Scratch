@@ -4,5 +4,4 @@
 **/build/
 .vscode
 .cache/
-
-placeholder.c
+tests/*.img

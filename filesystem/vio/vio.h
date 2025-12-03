@@ -26,7 +26,7 @@
 
 typedef volatile struct __attribute__((packed)) { 
     uint32_t magic_value; // 0x000 - Should be 0x74726976
-    uint32_t version; // 0x004 - Should be 2
+    uint32_t version; // 0x004 - Should be 1 or 2
     uint32_t device_id; // 0x008
     uint32_t vendor_id; // 0x00C
     uint32_t device_features; // 0x010
@@ -34,12 +34,14 @@ typedef volatile struct __attribute__((packed)) {
     uint32_t reserved_0[2]; // 0x018 - 0x01F
     uint32_t driver_features; // 0x020
     uint32_t selected_driver_features; // 0x024
-    uint32_t reserved_1[2]; // 0x028 - 0x02F
+    uint32_t guest_page_size; // 0x028 - v1 only
+    uint32_t reserved_1; // 0x02C
     uint32_t selected_queue; // 0x030
     uint32_t queue_maximum_size; // 0x034
     uint32_t selected_queue_size; // 0x038
-    uint32_t reserved_2[2]; // 0x03C - 0x043
-    uint32_t queue_ready; // 0x044
+    uint32_t queue_align; // 0x03C - v1 only  
+    uint32_t queue_pfn; // 0x040 - v1 only (Page Frame Number)
+    uint32_t reserved_2; // 0x044
     uint32_t reserved_3[2]; // 0x048 - 0x04F
     uint32_t queue_notification; // 0x050
     uint32_t reserved_4[3]; // 0x054 - 0x05F
@@ -48,14 +50,14 @@ typedef volatile struct __attribute__((packed)) {
     uint32_t reserved_5[2]; // 0x068 - 0x06F
     uint32_t device_status; // 0x070
     uint32_t reserved_6[3]; // 0x074 - 0x07F
-    uint32_t descriptor_table_address_low; // 0x080 
-    uint32_t descriptor_table_address_high; // 0x084
+    uint32_t descriptor_table_address_low; // 0x080 - v2 only
+    uint32_t descriptor_table_address_high; // 0x084 - v2 only
     uint32_t reserved_7[2]; // 0x088 - 0x08F
-    uint32_t available_ring_address_low; // 0x090
-    uint32_t available_ring_address_high; // 0x094
+    uint32_t available_ring_address_low; // 0x090 - v2 only
+    uint32_t available_ring_address_high; // 0x094 - v2 only
     uint32_t reserved_8[2]; // 0x098 - 0x09F
-    uint32_t used_ring_address_low; // 0x0A0
-    uint32_t used_ring_address_high; // 0x0A4
+    uint32_t used_ring_address_low; // 0x0A0 - v2 only
+    uint32_t used_ring_address_high; // 0x0A4 - v2 only
 } vio_mmio_registers;
 
 
@@ -84,9 +86,19 @@ typedef struct __attribute__((packed)) {
 
 typedef struct __attribute__((packed)) {
     uint16_t flags;
-    uint16_t index;
+    volatile uint16_t index;
     vioqueue_used_element ring[VIOQUEUE_SIZE];
 } vioqueue_used_ring;
+
+
+// VirtIO queue layout structure for version 1
+// Must be in contiguous memory with proper alignment
+typedef struct {
+    vio_descriptor descriptors[VIOQUEUE_SIZE];
+    vioqueue_available_ring available;
+    uint8_t padding[4096 - (sizeof(vio_descriptor) * VIOQUEUE_SIZE + sizeof(vioqueue_available_ring)) % 4096];
+    vioqueue_used_ring used __attribute__((aligned(4096)));
+} vio_queue_layout;
 
 
 #define VIO_BLOCK_REQUEST_TYPE_READ 0x00
