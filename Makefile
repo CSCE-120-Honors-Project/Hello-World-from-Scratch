@@ -63,7 +63,7 @@ flatten: $(OUTPUT_PREFIX).elf
 	$(COMMAND_PREFIX)-objcopy $(OUTPUT_PREFIX).elf -O binary $(BINARY_PREFIX).bin
 
 # Build everything
-build: assemble link flatten clean
+build: assemble link flatten
 
 # Delete object files
 clean:
@@ -74,13 +74,13 @@ delete: clean
 	rm -f *.bin
 
 # Run in QEMU (no disk)
-virtualize: $(BINARY_PREFIX).bin
-	qemu-system-aarch64 -M virt -cpu cortex-a53 -nographic -kernel $(BINARY_PREFIX).bin
+virtualize: $(OUTPUT_PREFIX).elf
+	qemu-system-aarch64 -M virt -cpu cortex-a53 -nographic -kernel $(OUTPUT_PREFIX).elf
 
 # Run in QEMU with disk
-virtualizeVinux: $(BINARY_PREFIX).bin
+virtualizeVinux: $(OUTPUT_PREFIX).elf
 	qemu-system-aarch64 -M virt -cpu cortex-a53 -m 256M -nographic \
-		-kernel $(BINARY_PREFIX).bin \
+		-kernel $(OUTPUT_PREFIX).elf \
 		-drive file=disk.img,if=none,format=raw,id=hd0 \
 		-device virtio-blk-device,drive=hd0
 

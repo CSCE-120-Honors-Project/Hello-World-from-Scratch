@@ -133,6 +133,12 @@ void boot_main(void) {
     
     uart_puts("DEBUG main: About to call fat_read()...\n\r");
     
+    uint64_t sp_main;
+    asm volatile("mov %0, sp" : "=r"(sp_main));
+    uart_puts("DEBUG main: SP before call: 0x");
+    uart_print_hex(sp_main);
+    uart_puts("\n\r");
+    
     if (fat_read(&kernel_file, (uint8_t*)KERNEL_LOAD_ADDR) < 0) {
         uart_puts("FATAL: Kernel load failed!\n\r");
         uart_puts("Could not read kernel from disk.\n\r");

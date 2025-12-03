@@ -4,7 +4,7 @@ MEMORY {
     /* Initialize flash memory, where bootloaders are typically stored */
     FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 128M
     /* QEMU typically loads bare metal executables in RAM */
-    RAM (rwx) : ORIGIN = 0x40000000, LENGTH = 512K
+    RAM (rwx) : ORIGIN = 0x48000000, LENGTH = 512K
     /* Define a memory region for the kernel load area */
     KERNEL (rwx): ORIGIN = 0x40080000, LENGTH = 16M
 }
