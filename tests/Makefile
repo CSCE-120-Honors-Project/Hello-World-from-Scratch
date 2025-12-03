@@ -108,11 +108,7 @@ $(DISK_IMG):
 	@echo "Creating $(DISK_SIZE) disk image..."
 	dd if=/dev/zero of=$(DISK_IMG) bs=1M count=$(shell echo $(DISK_SIZE) | sed 's/M//') 2>/dev/null
 	@echo "Writing MBR and partition table..."
-	# Write MBR boot signature at offset 510 (0xAA55 in little-endian)
-	printf '\x55\xAA' | dd of=$(DISK_IMG) bs=1 seek=510 count=2 conv=notrunc 2>/dev/null
-	# Write partition entry at offset 446 (0x1BE)
-	# Partition 1: bootable, type 0x0C (FAT32 LBA), starts at LBA 2048, size calculated
-	printf '\x80\x00\x00\x00\x0C\x00\x00\x00\x00\x08\x00\x00\x00\x60\x03\x00' | dd of=$(DISK_IMG) bs=1 seek=446 count=16 conv=notrunc 2>/dev/null
+	@bash -c 'fn="$(DISK_IMG)"; total_bytes=$$(stat -c%s "$$fn"); total_sectors=$$((total_bytes / 512)); start_lba=2048; sectors_count=$$((total_sectors - start_lba)); tmp=$$(mktemp); printf %b \\x80\\x00\\x00\\x00 > $$tmp; printf %b \\x0C\\x00\\x00\\x00 >> $$tmp; b0=$$((start_lba & 0xFF)); b1=$$(((start_lba >> 8) & 0xFF)); b2=$$(((start_lba >> 16) & 0xFF)); b3=$$(((start_lba >> 24) & 0xFF)); printf %b "$(printf "\\\\x%02x\\\\x%02x\\\\x%02x\\\\x%02x" $$b0 $$b1 $$b2 $$b3)" >> $$tmp; sc0=$$((sectors_count & 0xFF)); sc1=$$(((sectors_count >> 8) & 0xFF)); sc2=$$(((sectors_count >> 16) & 0xFF)); sc3=$$(((sectors_count >> 24) & 0xFF)); printf %b "$(printf "\\\\x%02x\\\\x%02x\\\\x%02x\\\\x%02x" $$sc0 $$sc1 $$sc2 $$sc3)" >> $$tmp; dd if=$$tmp of="$$fn" bs=1 seek=446 conv=notrunc >/dev/null 2>&1; printf %b \\x55\\xAA | dd of="$$fn" bs=1 seek=510 conv=notrunc >/dev/null 2>&1; rm -f $$tmp; echo "MBR/partition written (shell)"'
 	@echo "Formatting as FAT32..."
 	# Create a loopback device (may require sudo on some systems)
 	# Alternative: use mformat from mtools package

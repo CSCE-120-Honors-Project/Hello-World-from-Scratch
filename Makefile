@@ -51,28 +51,23 @@ build: configure
 	@$(CMAKE) --build $(BUILD_DIR) -- -j$(JOBS)
 	@echo "==> Build finished"
 
-# Create FAT32 disk image with kernel
+# Create FAT32 disk image by delegating to tests/Makefile (leverages tested mtools workflow)
 disk: os
-	@echo "==> Creating FAT32 disk image ($(DISK_IMG))"
+	@echo "==> Creating FAT32 disk image via tests/Makefile"
 	@if [ ! -f $(OS_BIN) ]; then \
 		echo "Error: $(OS_BIN) not found. Build the OS first with 'make os'"; exit 1; \
 	fi
-	@echo "Creating $(DISK_SIZE_MB)MB disk image..."
-	@$(DD) if=/dev/zero of=$(DISK_IMG) bs=1M count=$(DISK_SIZE_MB) status=none
-	@echo "Writing MBR and partition table..."
-	@printf '\x55\xAA' | $(DD) of=$(DISK_IMG) bs=1 seek=510 count=2 conv=notrunc 2>/dev/null
-	@printf '\x80\x00\x00\x00\x0C\x00\x00\x00\x00\x08\x00\x00\x00\x00\x60\x03' | $(DD) of=$(DISK_IMG) bs=1 seek=446 count=16 conv=notrunc 2>/dev/null
-	@echo "Formatting as FAT32..."
-	@if command -v mformat > /dev/null; then \
-		mformat -i $(DISK_IMG)@@1M -F -v BOOT :: ; \
-		echo "Copying kernel to disk..."; \
-		mcopy -i $(DISK_IMG)@@1M $(OS_BIN) ::KERNEL.BIN 2>/dev/null || true; \
-		echo "Disk image created: $(DISK_IMG)"; \
+	@$(MAKE) -C tests disk
+	@if [ -f tests/test_disk.img ]; then \
+		cp tests/test_disk.img $(DISK_IMG) && echo "Copied tests/test_disk.img -> $(DISK_IMG)"; \
 	else \
-		echo "WARNING: mtools not installed. Please install it:"; \
-		echo "  Ubuntu/Debian: sudo apt-get install mtools"; \
-		echo "  macOS: brew install mtools"; \
-		echo "Creating empty disk image..."; \
+		echo "WARNING: tests/test_disk.img not found; disk creation in tests may have failed."; \
+	fi
+	@if command -v mcopy > /dev/null 2>&1; then \
+		echo "==> Copying kernel to disk (KERNEL.BIN)"; \
+		mcopy -i $(DISK_IMG)@@1M -o $(OS_BIN) ::KERNEL.BIN && echo "Kernel copied to disk"; \
+	else \
+		echo "WARNING: mcopy not found. Cannot copy kernel to disk."; \
 	fi
 
 # Run the OS directly in QEMU (bypass bootloader)
