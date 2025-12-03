@@ -1,44 +1,58 @@
-# DIY Bootloader
-Our honors project for CSCE 120
+# Hello World from Scratch - Project Documentation
 
 ## Table of Contents
-* [What is our Bootloader?](#what-is-our-bootloader)
-* [Building the Program](#building-the-program)
-* [The Linker Script](#the-linker-script)
+* [Project Description](#project-description)
+    * [Project Goals](#project-goals)
+    * [Project Constraints](#project-constraints)
+    * [Project Contents](#project-contents)
+* [Project Code](#project-code)
+* [Running the Code](#running-the-code)
+* [User Instructions](#user-instructions)
+* [Development Reflections](#development-reflections)
 
-## What is our Bootloader?
+## Project Description
+---
+This project is a "Hello, World!" program, with a twist! Typically, even with
+simple programs like this, developers rely on standard libraries and
+conveniences provided by the operating system, bootloader, or firmware to
+facilitate development. This project explores the question of "what if we had to
+write a 'Hello, World!' program without any of those conveniences?"
 
-## Building the Program
-The provided [Makefile](Makefile) provides a platform-agnostic way of building the program from source.
-> [!IMPORTANT] 
-> To build the program, the following build tools must be installed, depending on the operating system:
-> * Windows: [Windows Aarch64 Bare Metal Target ARM Toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads#:~:text=x86_64%2Darm%2Dnone%2Dlinux%2Dgnueabihf.exe.sha256asc-,AArch64%20bare%2Dmetal%20target%20(aarch64%2Dnone%2Delf),-arm%2Dgnu%2Dtoolchain%2D14.3.rel1%2Dmingw%2Dw64)
-> * macOS: Install [Homebrew](https://brew.sh/) and run `brew install aarch64-elf-gcc`
+### Project Goals
+More specifically, we aimed to write a program that:
+* Read a binary that prints "Hello, World!" to the console from a hard drive
+* Loaded that binary into memory
+* Set up the system environment to run that binary
+* Executed the binary to print "Hello, World!" to the console
 
-```sh
-# To assemble the program
-make assemble SCRIPT=bootloader.s
-# To link the program
-make link SCRIPT=bootloader.o
-# To flatten the executable
-make flatten SCRIPT=bootloader.elf OUTPUT=bootloader.bin
-# To delete the intermediate object and elf files
-make clean
-# To delete all object, elf, and binary
-make delete
-# To build the entire program in one command
-make build SCRIPT=bootloader.s OUTPUT=bootloader.bin
-# To run the program in QEMU
-make virtualize BINARY=bootloader.bin 
-```
+### Project Constraints
+Our constraints were defined by the limited environment of the bare metal system
+we chose: a Cortex A53 CPU running on a QEMU virt board. This meant:
+* No standard library
+* No operating system to handle:
+    * Stack initialization
+    * Heap memory (no `malloc`/`free` or `new`/`delete`)
+    * Loading programs into memory
+    * Standard output (no `printf`, `cout`, etc.)
+* No file system access
 
-## The Linker Script
-The provided [linker script](linker.ld) is used to control the memory layout of the bootloader during the linking process.
-It specifies the starting address of the bootloader in RAM and defines sections:
-* `.text.boot`: Contains the bootloader's startup code, such as the code that zero-initializes the .bss section.
-* `.text`: Contains the main code of the bootloader.
-* `.rodata`: Contains read-only data, such as string literals.
-* `.data`: Contains initialized global and static variables.
-* `.bss`: Reserves space for uninitialized global and static variables. These variables may be initialized at runtime.
 
-The linker script also includes symbols to track the start and end of the various sections, which can be used in the bootloader's code for memory management tasks.
+### Project Contents
+The combination of our goals and these constraints dictated what our project implemented:
+* A UART driver to handle console output
+* A VirtIO driver to read from a virtual hard drive
+* A FAT32 driver to parse the virtual hard drive to find and read the "Hello,
+World!" binary
+* The "Hello, World!" binary, which uses the UART driver to print to the console
+* The bootloader, which initializes the stack and drivers, loads the binary
+into memory, and executes it
+* CMake build scripts to compile and link everything together
+* A Makefile to build the program and run it in QEMU
+
+## Project Code
+---
+The source code for this project is here! This very Git repository contains all
+of our handcrafted, fair-trade, organically-sourced, free-range, non-GMO,
+grass-fed artisan code.
+
+For those who really want a link to the code, here it is: https://github.com/CSCE-120-Honors-Project/DIY-Bootloader
