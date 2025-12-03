@@ -1,5 +1,6 @@
 #include "fat.h"
 #include "vio.h"
+#include "../../uart/uart.h"
 
 static fat_master_boot_record mbr;
 static fat_volume_id volume_id;
@@ -93,20 +94,42 @@ int fat_mount(uint8_t partition_number) {
         return -1; // Not a FAT32 partition
     }
 
+    // Read start_lba safely - avoid unaligned access through packed struct
+    uint32_t partition_start_lba;
+    uint8_t* partition_bytes = (uint8_t*)partition;
+    // start_lba is at offset 0x08 in the partition entry struct
+    partition_start_lba = partition_bytes[8] |
+                         (partition_bytes[9] << 8) |
+                         (partition_bytes[10] << 16) |
+                         (partition_bytes[11] << 24);
+    
     // Read the Volume ID sector
-    if (vio_read_sector(partition->start_lba, (uint8_t*)&volume_id) < 0) {
+    if (vio_read_sector(partition_start_lba, (uint8_t*)&volume_id) < 0) {
         return -1;
     }
 
-    if (volume_id.boot_signature != FAT_BOOT_SIGNATURE) {
+    // Read boot_signature safely - it's at offset 0x1FE
+    uint8_t* vol_bytes = (uint8_t*)&volume_id;
+    uint16_t boot_sig = vol_bytes[510] | (vol_bytes[511] << 8);
+    
+    if (boot_sig != FAT_BOOT_SIGNATURE) {
         return -1; // Invalid Volume ID signature
     }
 
+    // Read other fields safely to avoid unaligned access
+    uint16_t reserved_sector_count = vol_bytes[0x0E] | (vol_bytes[0x0F] << 8);
+    uint8_t num_fats = vol_bytes[0x10]; // Safe, single byte
+    uint32_t fat_size_32 = vol_bytes[0x24] | (vol_bytes[0x25] << 8) | 
+                           (vol_bytes[0x26] << 16) | (vol_bytes[0x27] << 24);
+    uint8_t sects_per_cluster = vol_bytes[0x0D]; // Safe, single byte
+    uint32_t root_clust = vol_bytes[0x2C] | (vol_bytes[0x2D] << 8) |
+                          (vol_bytes[0x2E] << 16) | (vol_bytes[0x2F] << 24);
+
     // Initialize FAT32 filesystem parameters
-    fat_begin_lba = partition->start_lba + volume_id.reserved_sector_count;
-    cluster_start_lba = fat_begin_lba + (volume_id.num_fats * volume_id.fat_size_32);
-    sectors_per_cluster = volume_id.sectors_per_cluster;
-    root_cluster = volume_id.root_cluster;
+    fat_begin_lba = partition_start_lba + reserved_sector_count;
+    cluster_start_lba = fat_begin_lba + (num_fats * fat_size_32);
+    sectors_per_cluster = sects_per_cluster;
+    root_cluster = root_clust;
 
     return 0;
 }

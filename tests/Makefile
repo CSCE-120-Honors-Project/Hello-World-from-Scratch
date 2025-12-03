@@ -13,7 +13,7 @@ VIO_DIR = ../filesystem/vio
 FAT_DIR = ../filesystem/fat
 
 # Compiler flags
-CFLAGS = -Wall -Wextra -O2 -ffreestanding -nostdlib -nostartfiles \
+CFLAGS = -Wall -Wextra -O0 -ffreestanding -nostdlib -nostartfiles \
          -mcpu=cortex-a53 -I$(UART_DIR) -I$(VIO_DIR) -I$(FAT_DIR)
 
 ASFLAGS = -mcpu=cortex-a53

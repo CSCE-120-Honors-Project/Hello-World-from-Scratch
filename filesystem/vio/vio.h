@@ -86,7 +86,7 @@ typedef struct __attribute__((packed)) {
 
 typedef struct __attribute__((packed)) {
     uint16_t flags;
-    uint16_t index;
+    volatile uint16_t index;
     vioqueue_used_element ring[VIOQUEUE_SIZE];
 } vioqueue_used_ring;
 
