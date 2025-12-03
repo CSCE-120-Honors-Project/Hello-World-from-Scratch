@@ -51,15 +51,15 @@ void boot_main(void) {
     // ============================================================================
     // PHASE 1: Initialize Block Device
     // ============================================================================
-   uart_puts("[1] Initializing VIO block device...\n\r");
+    uart_puts("[1] Initializing VIO block device...\n\r");
     
     if (vio_init() < 0) {
-       // uart_puts("FATAL: VIO initialization failed!\n\r");
-       // uart_puts("The bootloader cannot access the disk.\n\r");
-      //  goto fatal_error;
+        uart_puts("FATAL: VIO initialization failed!\n\r");
+        uart_puts("The bootloader cannot access the disk.\n\r");
+        goto fatal_error;
     }
     
-    //zuart_puts("     SUCCESS: VIO block device ready\n\r");
+    uart_puts("     SUCCESS: VIO block device ready\n\r");
     uart_puts("\n\r");
     
     // ============================================================================
@@ -85,7 +85,7 @@ void boot_main(void) {
     
     uart_puts("      SUCCESS: FAT32 mounted\n\r");
     uart_puts("\n\r");
-    
+     
     // ============================================================================
     // PHASE 3: Search for Kernel File
     // ============================================================================
@@ -131,18 +131,30 @@ void boot_main(void) {
     uart_puts("\n\r");
     uart_puts("    Reading from disk...\n\r");
     
+    uart_puts("DEBUG main: About to call fat_read()...\n\r");
+    
     if (fat_read(&kernel_file, (uint8_t*)KERNEL_LOAD_ADDR) < 0) {
         uart_puts("FATAL: Kernel load failed!\n\r");
         uart_puts("Could not read kernel from disk.\n\r");
         goto fatal_error;
     }
     
+    uart_puts("DEBUG main: fat_read() returned successfully\n\r");
+
+    // Force a small delay
+    for (volatile int delay = 0; delay < 100000; delay++);
+
+    uart_puts("DEBUG main: Delay done\n\r");
+
+    uart_puts("[5] Boot Information:\n\r");
+
     uart_puts("    SUCCESS: Kernel loaded\n\r");
     uart_puts("\n\r");
     
     // ============================================================================
     // PHASE 5: Boot Information
     // ============================================================================
+    uart_puts("DEBUG main: Starting Phase 5\n\r");
     uart_puts("[5] Boot Information:\n\r");
     uart_puts("    Kernel Entry Point: 0x");
     uart_print_hex(KERNEL_LOAD_ADDR);
@@ -151,10 +163,12 @@ void boot_main(void) {
     uart_print_hex(kernel_file.file_size);
     uart_puts(" bytes\n\r");
     uart_puts("\n\r");
+    uart_puts("DEBUG main: Phase 5 complete\n\r");
     
     // ============================================================================
     // PHASE 6: Transfer Control to Kernel
     // ============================================================================
+    uart_puts("DEBUG main: Starting Phase 6\n\r");
     uart_puts("[6] Transferring control to kernel...\n\r");
     uart_puts("    Jumping to 0x");
     uart_print_hex(KERNEL_LOAD_ADDR);
@@ -165,10 +179,16 @@ void boot_main(void) {
     uart_puts("===========================================\n\r");
     uart_puts("\n\r");
     
+    uart_puts("DEBUG main: Creating kernel_entry function pointer\n\r");
+    
     // Jump to kernel
     // Cast the address as a function pointer with void return and no arguments
     typedef void (*kernel_entry_t)(void);
     kernel_entry_t kernel_entry = (kernel_entry_t)KERNEL_LOAD_ADDR;
+    
+    uart_puts("DEBUG main: About to call kernel entry point at 0x");
+    uart_print_hex(KERNEL_LOAD_ADDR);
+    uart_puts("\n\r");
     
     // Call the kernel
     kernel_entry();
@@ -187,6 +207,4 @@ fatal_error:
     while (1) {
         asm volatile("wfe");  // Wait for event/interrupt
     }
-
 }
-    

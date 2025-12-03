@@ -79,7 +79,7 @@ virtualize: $(BINARY_PREFIX).bin
 
 # Run in QEMU with disk
 virtualizeVinux: $(BINARY_PREFIX).bin
-	qemu-system-aarch64 -M virt -cpu cortex-a53 -m 256M  \
+	qemu-system-aarch64 -M virt -cpu cortex-a53 -m 256M -nographic \
 		-kernel $(BINARY_PREFIX).bin \
 		-drive file=disk.img,if=none,format=raw,id=hd0 \
 		-device virtio-blk-device,drive=hd0

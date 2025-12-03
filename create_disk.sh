@@ -2,6 +2,7 @@
 
 # Create a disk.img that VIO can read
 # FIXED VERSION: Correctly formats the partition instead of the whole disk
+set -x
 
 DISK_IMG="disk.img"
 DISK_SIZE_MB=50
@@ -45,7 +46,7 @@ dd if=/dev/zero of=partition.img bs=1M count=$PART_SIZE_MB 2>/dev/null
 mkfs.fat -F 32 -n "BOOTDISK" partition.img > /dev/null
 
 # Copy the formatted partition into the disk image at the correct offset (1MB = 2048 sectors)
-dd if=partition.img of=$DISK_IMG bs=512 seek=2048 conv=notrunc 2>/dev/null
+dd if=partition.img of=$DISK_IMG bs=1M seek=1 conv=notrunc 2>/dev/null
 
 # Clean up temp file
 rm partition.img
@@ -60,37 +61,43 @@ mkdir -p $MOUNT_POINT
 
 # Mount using loopback at the partition offset (1MB = 1048576 bytes)
 PARTITION_OFFSET=1048576
-sudo mount -o loop,offset=$PARTITION_OFFSET $DISK_IMG $MOUNT_POINT
+mount -o loop,offset=$PARTITION_OFFSET $DISK_IMG $MOUNT_POINT
 
 if [ $? -eq 0 ]; then
-    # Create a simple test kernel binary
-    echo "Creating test kernel (152 bytes)..."
+    # Build the real OS
+    echo "Building OS kernel..."
     
-    # Create a minimal ARM64 binary
-    cat > kernel.s << 'EOF'
-.section ".text"
-.global _start
-_start:
-    wfe
-    b _start
-EOF
+    # Save current directory
+    SCRIPT_DIR=$(pwd)
     
-    # Assemble and link
-    aarch64-linux-gnu-as kernel.s -o kernel.o 2>/dev/null
-    aarch64-linux-gnu-ld -Ttext=0x40080000 kernel.o -o kernel.elf 2>/dev/null
-    aarch64-linux-gnu-objcopy -O binary kernel.elf kernel.bin 2>/dev/null
+    # Build OS
+    cd os
+    make clean > /dev/null 2>&1
+    make > /dev/null 2>&1
     
-    # Copy to disk with 8.3 filename format
-    # Note: Linux FAT driver handles case, but we ensure it's uppercase for clarity
-    sudo cp kernel.bin $MOUNT_POINT/KERNEL.BIN
+    if [ ! -f os.bin ]; then
+        echo "✗ Failed to build OS"
+        cd $SCRIPT_DIR
+        umount $MOUNT_POINT
+        rm -rf $MOUNT_POINT
+        exit 1
+    fi
+    
+    echo "✓ OS built successfully"
+    
+    # Copy OS binary as KERNEL.BIN
+    cp os.bin $MOUNT_POINT/KERNEL.BIN
+    
+    # Return to original directory
+    cd $SCRIPT_DIR
     
     # Verify
     echo "Files on disk:"
-    sudo ls -lh $MOUNT_POINT/
+    ls -lh $MOUNT_POINT/
     
     # Unmount
-    sudo umount $MOUNT_POINT
-    echo "✓ Kernel copied to disk"
+    umount $MOUNT_POINT
+    echo "✓ OS kernel copied to disk"
 else
     echo "✗ Failed to mount disk"
     rm -rf $MOUNT_POINT
@@ -98,7 +105,6 @@ else
 fi
 
 # Cleanup
-rm -f kernel.s kernel.o kernel.elf kernel.bin
 rmdir $MOUNT_POINT 2>/dev/null
 
 echo ""
@@ -108,6 +114,6 @@ echo "What's inside:"
 echo "  - MBR (Master Boot Record)"
 echo "  - Partition table (1 FAT32 partition starting at sector 2048)"
 echo "  - FAT32 filesystem (inside partition 1)"
-echo "  - KERNEL.BIN (test kernel)"
+echo "  - KERNEL.BIN (real OS kernel from os/os.bin)"
 echo ""
 echo "Ready to test with: make virtualizeVinux"

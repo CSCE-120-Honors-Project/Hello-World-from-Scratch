@@ -4,7 +4,7 @@ so the bootloader jumps straight into this,
 then this will do some setup
 then it will go to main which has hello world or whatever
 
-LINKER MUST PROVIDE __bss_start, __bss_end
+LINKER MUST PROVIDE boot_stack_top, __bss_start, __bss_end
 
 so this file needs:
 - _start label for entry point
@@ -20,9 +20,8 @@ so this file needs:
 //defining start <- this is where bootloader sends us
 _start:
     //now do the stack pointer
-    ldr x0, =stack_top // loads value of stack_top to register x0
+    ldr x0, =boot_stack_top // loads value of stack_top to register x0
     mov sp, x0 // put that value into the real stack pointer register
-    // WHY THIS 2 STEP PROCESS? its probably safer or smth
 
     // then clear bss (for uninitialized variables)
     // the size of this section is calculated by the linker
@@ -42,12 +41,4 @@ bss_cleared:
 hang:
     wfi
     b hang
-
-.section ".bss"
-.align 4
-stack:
-    .space 4096
-stack_top:
-// this is really clever stuff
-// stack is just a block of memory we want at runtime, so we can just put it in bss
-// this way at runtime we get a nice zeroed out stack while not wasting 4kb of space in the elf file
+    

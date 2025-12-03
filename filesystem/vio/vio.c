@@ -15,10 +15,8 @@ static vioqueue_used_ring* used_ring;
 
 static vio_block_request vio_request_header;
 static volatile uint8_t vio_request_status;
-static uint16_t last_used_index = 0;
 
 int vio_init() {
-
     // Scan MMIO slots to find VirtIO block device
     for (uint64_t addr = 0x0A000000; addr < 0x0A000000 + 0x200 * 32; addr += 0x200) {
         volatile vio_mmio_registers* regs = (vio_mmio_registers*)addr;
@@ -117,7 +115,9 @@ int vio_init() {
         uint64_t used_ring_address = (uint64_t)&used_ring;
         vio_regs->used_ring_address_low = (uint32_t)(used_ring_address & 0xFFFFFFFF);
         vio_regs->used_ring_address_high = (uint32_t)(used_ring_address >> 32);
-    }    // Set final status
+    }    
+    
+    // Set final status
     vio_regs->device_status |= VIO_DEVICE_STATUS_DRIVER_OK;
     return 0;
 }
@@ -165,18 +165,23 @@ int vio_read_sector(uint32_t sector, uint8_t* buffer) {
     vio_regs->queue_notification = 0;
 
     // Wait for the device to process the request
+    // FIXED: Track when the used index changes, not a fixed value
+    uint16_t initial_used_index = used_ring->index;
     int timeout = 10000000;
-    while (last_used_index == used_ring->index) {
+    
+    while (used_ring->index == initial_used_index) {
         timeout--;
         if (timeout == 0) {
+            uart_puts("DEBUG: VIO timeout!\n\r");
             return -1; // Timeout
         }
         __sync_synchronize();
     }
 
-    last_used_index = used_ring->index;
-
     if (vio_request_status != VIO_REQUEST_STATUS_OK) {
+        uart_puts("DEBUG: VIO request failed! Status: 0x");
+        uart_print_hex(vio_request_status);
+        uart_puts("\n\r");
         return -1; // Read failed
     }
 
