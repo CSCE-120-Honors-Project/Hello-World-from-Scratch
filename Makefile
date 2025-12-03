@@ -57,20 +57,23 @@ disk: os
 	@if [ ! -f $(OS_BIN) ]; then \
 		echo "Error: $(OS_BIN) not found. Build the OS first with 'make os'"; exit 1; \
 	fi
-	@echo "Creating $(DISK_SIZE_MB)MB zero file..."
+	@echo "Creating $(DISK_SIZE_MB)MB disk image..."
 	@$(DD) if=/dev/zero of=$(DISK_IMG) bs=1M count=$(DISK_SIZE_MB) status=none
-	@echo "Partitioning image (single FAT32 partition)..."
-	@printf "o\nn\np\n1\n2048\n\n\nt\nc\nw\n" | $(FDISK) $(DISK_IMG) > /dev/null 2>&1
-	@LOOP_DEV=$$($(LOSETUP) -fP --show $(DISK_IMG)); \
-	 echo "Using loop device: $$LOOP_DEV"; \
-	 $(MKFS_VFAT) -F 32 $${LOOP_DEV}p1 > /dev/null 2>&1; \
-	 sudo mkdir -p /mnt/disk_temp; \
-	 sudo mount $${LOOP_DEV}p1 /mnt/disk_temp; \
-	 sudo cp $(OS_BIN) /mnt/disk_temp/KERNEL.BIN; \
-	 sudo umount /mnt/disk_temp; \
-	 sudo rmdir /mnt/disk_temp; \
-	 sudo $(LOSETUP) -d $$LOOP_DEV; \
-	 echo "Disk image created: $(DISK_IMG)"
+	@echo "Writing MBR and partition table..."
+	@printf '\x55\xAA' | $(DD) of=$(DISK_IMG) bs=1 seek=510 count=2 conv=notrunc 2>/dev/null
+	@printf '\x80\x00\x00\x00\x0C\x00\x00\x00\x00\x08\x00\x00\x00\x00\x60\x03' | $(DD) of=$(DISK_IMG) bs=1 seek=446 count=16 conv=notrunc 2>/dev/null
+	@echo "Formatting as FAT32..."
+	@if command -v mformat > /dev/null; then \
+		mformat -i $(DISK_IMG)@@1M -F -v BOOT :: ; \
+		echo "Copying kernel to disk..."; \
+		mcopy -i $(DISK_IMG)@@1M $(OS_BIN) ::KERNEL.BIN 2>/dev/null || true; \
+		echo "Disk image created: $(DISK_IMG)"; \
+	else \
+		echo "WARNING: mtools not installed. Please install it:"; \
+		echo "  Ubuntu/Debian: sudo apt-get install mtools"; \
+		echo "  macOS: brew install mtools"; \
+		echo "Creating empty disk image..."; \
+	fi
 
 # Run the OS directly in QEMU (bypass bootloader)
 run-os: os
@@ -79,14 +82,12 @@ run-os: os
 	@$(QEMU) $(QEMU_FLAGS) -kernel $(OS_ELF)
 
 # Run bootloader with disk image attached (firmware should load OS from disk)
-run: build
-	@echo "==> Running firmware in QEMU (with disk if available)"
+run: build disk
+	@echo "==> Running bootloader in QEMU (with disk)"
 	@echo "Press Ctrl+A then X to exit QEMU"
-	@if [ -f $(DISK_IMG) ]; then \
-	  $(QEMU) $(QEMU_FLAGS) -kernel $(BOOTLOADER_ELF) -drive file=$(DISK_IMG),format=raw; \
-	else \
-	  $(QEMU) $(QEMU_FLAGS) -kernel $(BOOTLOADER_ELF); \
-	fi
+	@$(QEMU) $(QEMU_FLAGS) -kernel $(BOOTLOADER_ELF) \
+		-drive file=$(DISK_IMG),if=none,format=raw,id=hd \
+		-device virtio-blk-device,drive=hd
 
 # Run bootloader only (no disk)
 run-bootloader: bootloader
