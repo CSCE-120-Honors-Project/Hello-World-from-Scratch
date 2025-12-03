@@ -9,7 +9,16 @@ add_executable(${PROJECT_NAME} start.s main.c)
 # Place output name on disk as bootloader.elf
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "bootloader.elf")
 
-# No special link steps here; root CMake provides linker flags if needed
+# Link bootloader against uart, vio, and fat libraries
+target_link_libraries(${PROJECT_NAME} PRIVATE uart vio fat)
 
-# Linker: use root linker script and no standard libraries
+# Include directories for uart, vio, fat headers
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/uart
+    ${CMAKE_SOURCE_DIR}/filesystem/vio
+    ${CMAKE_SOURCE_DIR}/filesystem/fat
+)
+
+# Linker: use bootloader's own linker script and no standard libraries
 target_link_options(${PROJECT_NAME} PRIVATE "-T${CMAKE_CURRENT_SOURCE_DIR}/linker.ld" "-nostdlib")
+

@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.15)
+
+# Set toolchain BEFORE project()
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/arm64-toolchain.cmake)
+
 project(BareMetal_System C ASM)
 
 # ============================================================
@@ -56,7 +60,7 @@ if(NOT DEFINED CMAKE_C_COMPILER OR CMAKE_C_COMPILER STREQUAL "")
     set(CMAKE_C_COMPILER ${CROSS_PREFIX}-gcc)
 endif()
 if(NOT DEFINED CMAKE_ASM_COMPILER OR CMAKE_ASM_COMPILER STREQUAL "")
-    set(CMAKE_ASM_COMPILER ${CROSS_PREFIX}-as)
+    set(CMAKE_ASM_COMPILER ${CROSS_PREFIX}-gcc)
 endif()
 if(NOT DEFINED CMAKE_CXX_COMPILER OR CMAKE_CXX_COMPILER STREQUAL "")
     set(CMAKE_CXX_COMPILER ${CROSS_PREFIX}-g++)

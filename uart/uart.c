@@ -42,3 +42,47 @@ void uart_puts(const char* s) {
         uart_putc(*s++);
     }
 }
+
+// print a hexadecimal value
+void uart_print_hex(unsigned long value) {
+    uart_puts("0x");
+    
+    if (value == 0) {
+        uart_putc('0');
+        return;
+    }
+    
+    char buffer[16];
+    int len = 0;
+    unsigned long temp = value;
+    
+    while (temp > 0) {
+        buffer[len++] = (char)((temp % 16 < 10) ? ('0' + temp % 16) : ('a' + temp % 16 - 10));
+        temp /= 16;
+    }
+    
+    for (int i = len - 1; i >= 0; i--) {
+        uart_putc(buffer[i]);
+    }
+}
+
+// print a decimal value
+void uart_print_dec(unsigned long value) {
+    if (value == 0) {
+        uart_putc('0');
+        return;
+    }
+    
+    char buffer[20];
+    int len = 0;
+    unsigned long temp = value;
+    
+    while (temp > 0) {
+        buffer[len++] = (char)('0' + temp % 10);
+        temp /= 10;
+    }
+    
+    for (int i = len - 1; i >= 0; i--) {
+        uart_putc(buffer[i]);
+    }
+}
