@@ -24,7 +24,6 @@ bss_done:
     // Call main function
     bl main
 
-    // Hang if main returns
+    // Just loop forever - tests will output results
 hang:
-    wfi
     b hang

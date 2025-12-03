@@ -44,3 +44,6 @@ delete: clean
 
 virtualize:
 	qemu-system-aarch64 -M virt -cpu cortex-a53 -kernel $(BINARY)
+
+test-vio:
+	$(MAKE) -C tests test-vio
