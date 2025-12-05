@@ -42,3 +42,45 @@ void uart_puts(const char* s) {
         uart_putc(*s++);
     }
 }
+
+// NEW: Print 64-bit value as hexadecimal
+void uart_print_hex(uint64_t value) {
+    static const char hex_chars[] = "0123456789ABCDEF";
+    char buffer[17];
+    buffer[16] = '\0';
+    
+    // Convert to hex, right to left
+    for (int i = 15; i >= 0; i--) {
+        buffer[i] = hex_chars[value & 0xF];
+        value >>= 4;
+    }
+    
+    uart_puts(buffer);
+}
+
+// NEW: Print 32-bit value as decimal
+void uart_print_dec(uint32_t value) {
+    if (value == 0) {
+        uart_putc('0');
+        return;
+    }
+    
+    // Count digits
+    uint32_t temp = value;
+    int digits = 0;
+    while (temp > 0) {
+        digits++;
+        temp /= 10;
+    }
+    
+    // Print from left to right
+    char buffer[11];
+    buffer[digits] = '\0';
+    
+    for (int i = digits - 1; i >= 0; i--) {
+        buffer[i] = '0' + (value % 10);
+        value /= 10;
+    }
+    
+    uart_puts(buffer);
+}

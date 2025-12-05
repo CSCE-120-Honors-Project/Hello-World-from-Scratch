@@ -1,5 +1,6 @@
 #include "fat.h"
 #include "vio.h"
+#include "../../uart/uart.h"
 
 // Simple memcpy implementation for freestanding environment
 static void* memcpy_local(void* dest, const void* src, size_t n) {
@@ -18,6 +19,14 @@ static uint32_t fat_begin_lba;
 static uint32_t cluster_start_lba;
 static uint8_t sectors_per_cluster;
 static uint32_t root_cluster;
+
+// Static buffer for reading FAT sectors to avoid stack overflow
+static uint32_t fat_sector_buffer[FAT_SECTOR_SIZE / sizeof(uint32_t)];
+
+// Static buffer for directory entries (supports up to 128 sectors per cluster)
+// Max size: 128 sectors * 512 bytes / 32 bytes per entry = 2048 entries
+#define MAX_DIR_ENTRIES 2048
+static fat_directory_entry dir_entry_buffer[MAX_DIR_ENTRIES];
 
 
 // Helper functions for safe packed struct access
@@ -81,7 +90,10 @@ void format_filename(const char* src, char* dest) {
     // Copy name part
     int i = 0;
     while (i < 8 && src[i] != '\0' && src[i] != '.') {
-        dest[i] = src[i];
+        char c = src[i];
+        // normalize to upper-case for FAT short names
+        if (c >= 'a' && c <= 'z') c = c - 'a' + 'A';
+        dest[i] = c;
         i++;
     }
 
@@ -92,7 +104,9 @@ void format_filename(const char* src, char* dest) {
 
     i++; // Skip the dot
     for (int j = 8; j < 11 && src[i] != '\0'; j++) {
-        dest[j] = src[i++];
+        char c = src[i++];
+        if (c >= 'a' && c <= 'z') c = c - 'a' + 'A';
+        dest[j] = c;
     }
 }
 
@@ -154,8 +168,8 @@ static int fat_open_r(
         uint32_t cluster
     ) {
 
-    // Current directory buffer used for recursion
-    fat_directory_entry current_dir[(FAT_SECTOR_SIZE * sectors_per_cluster) / sizeof(fat_directory_entry)];
+    // Use our static directory buffer to avoid stack overflow
+    fat_directory_entry* current_dir = dir_entry_buffer;
 
     // Read the directory entries from the specified cluster
     if (read_dir_cluster(cluster, current_dir) < 0) {
@@ -235,43 +249,96 @@ int fat_open(const char* filename, fat_file* file) {
 
 int fat_read(fat_file* file, uint8_t* buffer) {
     if (file == NULL || buffer == NULL) {
+        uart_puts("DEBUG fat_read: NULL parameter\\n\\r");
         return -1; // Invalid parameters
     }
 
+    uint64_t sp_start;
+    asm volatile("mov %0, sp" : "=r"(sp_start));
+    uint64_t lr_start;
+    asm volatile("mov %0, x30" : "=r"(lr_start));
+    
+    uart_puts("DEBUG fat_read: SP at start: 0x");
+    uart_print_hex(sp_start);
+    uart_puts(", LR at start: 0x");
+    uart_print_hex(lr_start);
+    uart_puts(", Buffer: 0x");
+    uart_print_hex((uint64_t)buffer);
+    uart_puts(", File struct: 0x");
+    uart_print_hex((uint64_t)file);
+    uart_puts("\\n\\r");
+
     if (!file->is_open) {
+        uart_puts("DEBUG fat_read: File not open\\n\\r");
         return -1; // File not open
     }
     
+    uart_puts("DEBUG fat_read: Starting read, current_cluster=0x");
+    uart_print_hex(file->current_cluster);
+    uart_puts("\\n\\r");
+    
     // FAT32 EOC markers are 0x0FFFFFF8 through 0x0FFFFFFF
     while (file->current_cluster < 0x0FFFFFF8) {
+        uart_puts("DEBUG fat_read: Reading cluster 0x");
+        uart_print_hex(file->current_cluster);
+        uart_puts(" at LBA 0x");
+        uart_print_hex(cluster_to_lba(file->current_cluster));
+        uart_puts("\\n\\r");
+        
         // Read the current cluster into the buffer
         if (vio_read_sectors(
                 cluster_to_lba(file->current_cluster), 
                 sectors_per_cluster, 
                 buffer
             ) < 0) {
+            uart_puts("DEBUG fat_read: vio_read_sectors failed\\n\\r");
             return -1; // Read failed
         }
 
+        uart_puts("DEBUG fat_read: Cluster read successfully\\n\\r");
         buffer += cluster_size_bytes();
 
         // Calculate which sector of the FAT contains the entry for the current cluster
         uint32_t fat_sector_offset = (file->current_cluster * 4) / FAT_SECTOR_SIZE;
         uint32_t fat_entry_index = file->current_cluster % (FAT_SECTOR_SIZE / sizeof(uint32_t));
 
-        // Read the specific FAT sector
-        // Use uint32_t array to ensure 4-byte alignment
-        uint32_t fat_sector[FAT_SECTOR_SIZE / sizeof(uint32_t)];
+        uart_puts("DEBUG fat_read: Reading FAT sector at LBA 0x");
+        uart_print_hex(fat_begin_lba + fat_sector_offset);
+        uart_puts(", entry index ");
+        uart_print_dec(fat_entry_index);
+        uart_puts("\\n\\r");
+
+        // Read the specific FAT sector into our static buffer
         if (vio_read_sector(
                 fat_begin_lba + fat_sector_offset, 
-                (uint8_t*)fat_sector
+                (uint8_t*)fat_sector_buffer
             ) < 0) {
+            uart_puts("DEBUG fat_read: FAT sector read failed\\n\\r");
             return -1; // Read failed
         }
         
+        uart_puts("DEBUG fat_read: FAT sector read successfully\\n\\r");
+        
         // Get the next cluster from the FAT sector
-        file->current_cluster = fat_sector[fat_entry_index] & 0x0FFFFFFF;
+        file->current_cluster = fat_sector_buffer[fat_entry_index] & 0x0FFFFFFF;
+        
+        uart_puts("DEBUG fat_read: Next cluster = 0x");
+        uart_print_hex(file->current_cluster);
+        uart_puts("\\n\\r");
     }
 
+    uart_puts("DEBUG fat_read: Read complete\\n\\r");
+    
+    uint64_t sp_end;
+    asm volatile("mov %0, sp" : "=r"(sp_end));
+    uint64_t lr_end;
+    asm volatile("mov %0, x30" : "=r"(lr_end));
+    
+    uart_puts("DEBUG fat_read: SP at end: 0x");
+    uart_print_hex(sp_end);
+    uart_puts(", LR at end: 0x");
+    uart_print_hex(lr_end);
+    uart_puts("\\n\\r");
+    
     return 0;
 }

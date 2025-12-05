@@ -1,49 +1,126 @@
-SCRIPT ?= "*.s"
-OUTPUT ?= $(SCRIPT_PREFIX).elf
-BINARY ?= "kernel.bin"
+# Top-level Makefile: simple shortcuts for CMake build + QEMU testing
+# Usage examples:
+#   make configure      # configure build directory with CMake
+#   make build          # build all targets
+#   make os             # build only the OS target
+#   make bootloader     # build only the bootloader target
+#   make run-os         # run the OS directly in QEMU
+#   make run            # run firmware + disk in QEMU (disk must exist)
+#   make disk           # create FAT32 disk image and install OS (requires sudo)
+#   make clean          - remove build dir and disk image
 
-ifeq ($(OS), WINDOWS_NT)
-	COMMAND_PREFIX := aarch64-none-elf
-	SCRIPT_PREFIX := $(shell powershell -Command "Write-Host ('$(SCRIPT)' -replace '\.[^.]+$$','')")
-	OUTPUT_PREFIX := $(shell powershell -Command "Write-Host ('$(OUTPUT)' -replace '\.[^.]+$$','')")
-else
-	COMMAND_PREFIX := aarch64-elf
-	SCRIPT_PREFIX := $(shell echo $(SCRIPT) | sed -E "s/\.[^.]+$$//")
-	OUTPUT_PREFIX := $(shell echo $(OUTPUT) | sed -E "s/\.[^.]+$$//")
-endif
+# Tools (override on command line if needed)
+CMAKE ?= cmake
+QEMU ?= qemu-system-aarch64
+MKFS_VFAT ?= mkfs.vfat
+LOSETUP ?= losetup
+FDISK ?= fdisk
+DD ?= dd
 
-.PHONY: help assemble link flatten clean build delete virtualize
-.DEFAULT_GOAL := help
+# Build settings
+BUILD_DIR ?= build
+JOBS ?= $(shell nproc)
 
-help:
-	@echo "Available targets:"
-	@echo "  assemble SCRIPT=<file.s>                    - Assemble an assembly file(s) into object file(s) whose names match the inputs"
-	@echo "  link SCRIPT=<file.o> OUTPUT=<file.elf>      - Link the object file(s) into an ELF file."
-	@echo "  flatten SCRIPT=<file.elf> OUTPUT=<file.bin> - Flatten the ELF file into a binary file"
-	@echo "  clean                                       - Delete all object and elf files"
-	@echo "  build SCRIPT=<file.s> OUTPUT=<file.bin>     - Build the project and delete all object and elf files"
-	@echo "  delete                                      - Delete all object, elf, and binary files"
-	@echo "  virtualize BINARY=<file.bin>     			 - Run the binary in QEMU"
+# Artifact locations produced by the CMake build
+OS_ELF := $(BUILD_DIR)/os/os.elf
+OS_BIN := $(BUILD_DIR)/os/os.bin
+BOOTLOADER_ELF := $(BUILD_DIR)/bootloader/bootloader.elf
 
-assemble:
-	$(COMMAND_PREFIX)-as $(SCRIPT_PREFIX).s
+# Disk image settings
+DISK_IMG ?= disk.img
+DISK_SIZE_MB ?= 100
 
-link:
-	$(COMMAND_PREFIX)-ld -T linker.ld $(SCRIPT_PREFIX).o -o $(OUTPUT_PREFIX).elf
+# QEMU options
+QEMU_FLAGS ?= -M virt -cpu cortex-a53 -nographic
 
-flatten:
-	$(COMMAND_PREFIX)-objcopy $(SCRIPT_PREFIX).elf -O binary $(OUTPUT_PREFIX).bin
+.PHONY: all configure build os bootloader clean distclean disk run run-os run-bootloader help info
+.DEFAULT_GOAL := all
 
+# Default: build everything
+all: build
+	@echo "Built targets; use 'make run' or 'make run-os' to test in QEMU."
+
+# Build with CMake
+configure:
+	@echo "==> Configure with CMake"
+	@mkdir -p $(BUILD_DIR)
+	@$(CMAKE) -S . -B $(BUILD_DIR)
+
+build: configure
+	@echo "==> Building (parallel=$(JOBS))"
+	@$(CMAKE) --build $(BUILD_DIR) -- -j$(JOBS)
+	@echo "==> Build finished"
+
+# Build only the OS target
+os: configure
+	@echo "==> Building OS target"
+	@$(CMAKE) --build $(BUILD_DIR) --target os -- -j$(JOBS)
+
+# Build only the bootloader target
+bootloader: configure
+	@echo "==> Building bootloader target"
+	@$(CMAKE) --build $(BUILD_DIR) --target bootloader -- -j$(JOBS)
+
+# Create FAT32 disk image by delegating to tests/Makefile (leverages tested mtools workflow)
+
+
+disk: os
+	@echo "==> Creating fresh FAT32 disk image"
+	@DISK_SIZE_MB=$(DISK_SIZE_MB) OS_BIN=$(OS_BIN) DISK_IMG=$(DISK_IMG) ./scripts/make_disk.sh
+
+# Run the OS directly in QEMU (bypass bootloader)
+run-os: os
+	@echo "==> Running OS directly in QEMU"
+	@echo "Press Ctrl+A then X to exit QEMU"
+	@$(QEMU) $(QEMU_FLAGS) -kernel $(OS_ELF)
+
+# Run bootloader with disk image attached (firmware should load OS from disk)
+run: build disk
+	@echo "==> Running bootloader in QEMU (with disk)"
+	@echo "Press Ctrl+A then X to exit QEMU"
+	@$(QEMU) $(QEMU_FLAGS) -kernel $(BOOTLOADER_ELF) \
+		-drive file=$(DISK_IMG),if=none,format=raw,id=hd \
+		-device virtio-blk-device,drive=hd
+
+# Run bootloader only (no disk)
+run-bootloader: bootloader
+	@echo "==> Running bootloader (no disk)"
+	@$(QEMU) $(QEMU_FLAGS) -kernel $(BOOTLOADER_ELF)
+
+# Clean build artifacts
 clean:
-	rm -f *.o *.elf
+	@echo "==> Cleaning build directory"
+	@rm -rf $(BUILD_DIR)
 
-build: assemble link flatten clean
+# Remove build dir and disk image
+distclean: clean
+	@echo "==> Removing disk image"
+	@rm -f $(DISK_IMG)
 
-delete: clean
-	rm -f *.bin
+# Rebuild everything from scratch
+rebuild: distclean all
 
-virtualize:
-	qemu-system-aarch64 -M virt -cpu cortex-a53 -kernel $(BINARY)
+# Show build information
+info:
+	@echo "=== Project Build Information ==="
+	@echo "  Build directory: $(BUILD_DIR)"
+	@echo "  Disk image:      $(DISK_IMG)"
+	@echo "  OS ELF:          $(OS_ELF)"
+	@echo "  OS BIN:          $(OS_BIN)"
+	@echo "  Bootloader ELF:  $(BOOTLOADER_ELF)"
+	@echo ""
+	@echo "=== Available Targets ==="
+	@echo "  make configure       - Configure CMake build directory"
+	@echo "  make build           - Configure+Build (default for 'make')"
+	@echo "  make os              - Build only OS target"
+	@echo "  make bootloader      - Build only bootloader target"
+	@echo "  make run-os          - Run OS directly in QEMU (no bootloader)"
+	@echo "  make run             - Run bootloader (and disk if present) in QEMU"
+	@echo "  make disk            - Create FAT32 disk image and install OS (requires sudo)"
+	@echo "  make clean           - Remove build directory"
+	@echo "  make distclean       - Remove build dir and disk image"
+	@echo "  make rebuild         - Clean and rebuild everything"
+	@echo "  make help            - Show this information"
 
-test-vio:
-	$(MAKE) -C tests test-vio
+# Help target (alias for info)
+help: info
