@@ -99,10 +99,10 @@ fi
 if mountpoint -q $MOUNT_POINT >/dev/null 2>&1; then
     # Use the pre-built OS binary from CMake build output
     SCRIPT_DIR=$(pwd)
-    OS_BIN="$${SCRIPT_DIR}/build/os/os.bin"
+    OS_BIN="${SCRIPT_DIR}/build/os/os.bin"
 
-    if [ ! -f "$${OS_BIN}" ]; then
-        echo "✗ Failed to find OS binary at $${OS_BIN}"
+    if [ ! -f "${OS_BIN}" ]; then
+        echo "✗ Failed to find OS binary at ${OS_BIN}"
         rm -rf $MOUNT_POINT
         # Detach loop device if created
         if [ -n "$LOOP_DEVICE" ]; then
@@ -111,9 +111,9 @@ if mountpoint -q $MOUNT_POINT >/dev/null 2>&1; then
         exit 1
     fi
 
-    echo "✓ OS binary found: $${OS_BIN}"
+    echo "✓ OS binary found: ${OS_BIN}"
     # Copy OS binary as KERNEL.BIN (requires sudo to write to loop mount)
-    sudo cp "$${OS_BIN}" $MOUNT_POINT/KERNEL.BIN
+    sudo cp "${OS_BIN}" $MOUNT_POINT/KERNEL.BIN
     
     # Verify
     echo "Files on disk:"
