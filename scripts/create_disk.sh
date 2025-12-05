@@ -97,39 +97,30 @@ else
 fi
 
 if mountpoint -q $MOUNT_POINT >/dev/null 2>&1; then
-    # Build the real OS
-    echo "Building OS kernel..."
-    
-    # Save current directory
+    # Use the pre-built OS binary from CMake build output
     SCRIPT_DIR=$(pwd)
-    
-    # Build OS
-    cd os
-    make clean > /dev/null 2>&1
-    make > /dev/null 2>&1
-    
-    if [ ! -f os.bin ]; then
-        echo "✗ Failed to build OS"
-        cd $SCRIPT_DIR
-        umount $MOUNT_POINT
+    OS_BIN="$${SCRIPT_DIR}/build/os/os.bin"
+
+    if [ ! -f "$${OS_BIN}" ]; then
+        echo "✗ Failed to find OS binary at $${OS_BIN}"
         rm -rf $MOUNT_POINT
+        # Detach loop device if created
+        if [ -n "$LOOP_DEVICE" ]; then
+            sudo losetup -d $LOOP_DEVICE >/dev/null 2>&1 || true
+        fi
         exit 1
     fi
-    
-    echo "✓ OS built successfully"
-    
-    # Copy OS binary as KERNEL.BIN
-    cp os.bin $MOUNT_POINT/KERNEL.BIN
-    
-    # Return to original directory
-    cd $SCRIPT_DIR
+
+    echo "✓ OS binary found: $${OS_BIN}"
+    # Copy OS binary as KERNEL.BIN (requires sudo to write to loop mount)
+    sudo cp "$${OS_BIN}" $MOUNT_POINT/KERNEL.BIN
     
     # Verify
     echo "Files on disk:"
     ls -lh $MOUNT_POINT/
     
     # Unmount
-    umount $MOUNT_POINT || true
+    sudo umount $MOUNT_POINT || true
     echo "✓ OS kernel copied to disk"
     # Detach loop device if we attached one
     if [ -n "$LOOP_DEVICE" ]; then
