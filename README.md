@@ -84,14 +84,16 @@ On Windows, the project is easiest to build inside WSL (Ubuntu) while using a Wi
         sudo apt update
         sudo apt install build-essential cmake qemu-system-aarch64
         ```
-    3. Install an AArch64 bare‑metal GCC toolchain on Windows and ensure it is on your Windows `PATH` (for example, using Arm GNU Toolchain for AArch64 bare‑metal from Arm’s website):
+    3. Download and install the AArch64 bare-metal GCC toolchain from [Arm's official website](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads). Look for the `aarch64-none-elf` version for your platform.
+    4. Extract the toolchain and add its `bin` directory to your `PATH`:
         ```bash
-        sudo apt install aarch64-none-elf-gcc
+        export PATH=$PATH:/path/to/arm-gnu-toolchain/bin
         ```
-    4. Run the Makefile:
+    5. Verify the toolchain is installed:
         ```bash
-        make run
+        aarch64-none-elf-gcc --version
         ```
+
 
 
 ## User Instructions
@@ -102,9 +104,10 @@ On Windows, the project is easiest to build inside WSL (Ubuntu) while using a Wi
         ```bash
         make run
         ```
-## User Instructions
 
-<img width="680" height="875" alt="image" src="https://github.com/user-attachments/assets/3ee523ee-0a6c-47a7-9935-98c5d8791d2f" />
+
+Remeber to see the output you must view virtual serial port by clicking "view" then "serialport0" 
+<img width="340" height="478" alt="image" src="https://github.com/user-attachments/assets/3ee523ee-0a6c-47a7-9935-98c5d8791d2f" />
 
 
 
