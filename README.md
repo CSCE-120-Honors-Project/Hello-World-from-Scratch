@@ -150,7 +150,6 @@ If you modify `os/main.c` or other OS files, follow these steps:
 ## User Instructions
 ---
 
-
  Run the Makefile:
         ```bash
         make run
@@ -158,7 +157,12 @@ If you modify `os/main.c` or other OS files, follow these steps:
 
 
 Remeber to see the output you must view virtual serial port by clicking "view" then "serialport0" 
+
+
 <img width="340" height="478" alt="image" src="https://github.com/user-attachments/assets/3ee523ee-0a6c-47a7-9935-98c5d8791d2f" />
+
+Final Output should look like this!
+<img width="445" height="133" alt="image" src="https://github.com/user-attachments/assets/a7f25908-1175-41ab-bc60-01af4a5a9de1" />
 
 
 
