@@ -60,11 +60,53 @@ grass-fed artisan code.
 
 For those who really want a link to the code, [here it is](https://github.com/CSCE-120-Honors-Project/DIY-Bootloader).
 
+
 ## Running the Code
----
+
+This section assumes you are starting from a completely new machine that only has this repository cloned locally, and no ARM cross-compilers, QEMU, or CMake installed yet. [file:1]
+
+### 1. Prerequisites
+
+Install the following tools:
+
+
+- CMake (3.20 or newer recommended) 
+- GNU Make 
+- QEMU with AArch64 support (often provided by `qemu-system-aarch64`) 
+- An AArch64 bare‑metal GCC toolchain (for example, `aarch64-none-elf-gcc` or `aarch64-elf-gcc`)
+
+#### Windows (with WSL recommended)
+
+On Windows, the project is easiest to build inside WSL (Ubuntu) while using a Windows‑installed ARM toolchain and QEMU, which the CMake configuration is designed to auto‑detect.
+    1. Install WSL and Ubuntu from the Microsoft Store. 
+    2. Inside Ubuntu, install build tools:
+        ```bash
+        sudo apt update
+        sudo apt install build-essential cmake qemu-system-aarch64
+        ```
+    3. Install an AArch64 bare‑metal GCC toolchain on Windows and ensure it is on your Windows `PATH` (for example, using Arm GNU Toolchain for AArch64 bare‑metal from Arm’s website):
+        ```bash
+        sudo apt install aarch64-none-elf-gcc
+        ```
+    4. Run the Makefile:
+        ```bash
+        make run
+        ```
+
 
 ## User Instructions
 ---
+
+
+ Run the Makefile:
+        ```bash
+        make run
+        ```
+## User Instructions
+
+<img width="680" height="875" alt="image" src="https://github.com/user-attachments/assets/3ee523ee-0a6c-47a7-9935-98c5d8791d2f" />
+
+
 
 ## Development Reflections
 ---
