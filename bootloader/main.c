@@ -131,13 +131,13 @@ void boot_main(void) {
     uart_puts("\n\r");
     uart_puts("    Reading from disk...\n\r");
     
-    uart_puts("DEBUG main: About to call fat_read()...\n\r");
+    //uart_puts("DEBUG main: About to call fat_read()...\n\r");
     
     uint64_t sp_main;
     asm volatile("mov %0, sp" : "=r"(sp_main));
-    uart_puts("DEBUG main: SP before call: 0x");
-    uart_print_hex(sp_main);
-    uart_puts("\n\r");
+    //uart_puts("DEBUG main: SP before call: 0x");
+    //uart_print_hex(sp_main);
+    //uart_puts("\n\r");
     
     if (fat_read(&kernel_file, (uint8_t*)KERNEL_LOAD_ADDR) < 0) {
         uart_puts("FATAL: Kernel load failed!\n\r");
@@ -145,12 +145,12 @@ void boot_main(void) {
         goto fatal_error;
     }
     
-    uart_puts("DEBUG main: fat_read() returned successfully\n\r");
+    //uart_puts("DEBUG main: fat_read() returned successfully\n\r");
 
     // Force a small delay
     for (volatile int delay = 0; delay < 100000; delay++);
 
-    uart_puts("DEBUG main: Delay done\n\r");
+   // uart_puts("DEBUG main: Delay done\n\r");
 
     uart_puts("[5] Boot Information:\n\r");
 
@@ -160,7 +160,7 @@ void boot_main(void) {
     // ============================================================================
     // PHASE 5: Boot Information
     // ============================================================================
-    uart_puts("DEBUG main: Starting Phase 5\n\r");
+    //uart_puts("DEBUG main: Starting Phase 5\n\r");
     uart_puts("[5] Boot Information:\n\r");
     uart_puts("    Kernel Entry Point: 0x");
     uart_print_hex(KERNEL_LOAD_ADDR);
@@ -169,12 +169,12 @@ void boot_main(void) {
     uart_print_hex(kernel_file.file_size);
     uart_puts(" bytes\n\r");
     uart_puts("\n\r");
-    uart_puts("DEBUG main: Phase 5 complete\n\r");
+    //uart_puts("DEBUG main: Phase 5 complete\n\r");
     
     // ============================================================================
     // PHASE 6: Transfer Control to Kernel
     // ============================================================================
-    uart_puts("DEBUG main: Starting Phase 6\n\r");
+   // uart_puts("DEBUG main: Starting Phase 6\n\r");
     uart_puts("[6] Transferring control to kernel...\n\r");
     uart_puts("    Jumping to 0x");
     uart_print_hex(KERNEL_LOAD_ADDR);
@@ -185,16 +185,17 @@ void boot_main(void) {
     uart_puts("===========================================\n\r");
     uart_puts("\n\r");
     
-    uart_puts("DEBUG main: Creating kernel_entry function pointer\n\r");
+   // uart_puts("DEBUG main: Creating kernel_entry function pointer\n\r");
     
     // Jump to kernel
     // Cast the address as a function pointer with void return and no arguments
     typedef void (*kernel_entry_t)(void);
     kernel_entry_t kernel_entry = (kernel_entry_t)KERNEL_LOAD_ADDR;
     
-    uart_puts("DEBUG main: About to call kernel entry point at 0x");
+    /*uart_puts("DEBUG main: About to call kernel entry point at 0x");
     uart_print_hex(KERNEL_LOAD_ADDR);
     uart_puts("\n\r");
+    */
     
     // Call the kernel
     kernel_entry();
