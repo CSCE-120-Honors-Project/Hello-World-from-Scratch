@@ -52,23 +52,11 @@ build: configure
 	@echo "==> Build finished"
 
 # Create FAT32 disk image by delegating to tests/Makefile (leverages tested mtools workflow)
+
+
 disk: os
-	@echo "==> Creating FAT32 disk image via tests/Makefile"
-	@if [ ! -f $(OS_BIN) ]; then \
-		echo "Error: $(OS_BIN) not found. Build the OS first with 'make os'"; exit 1; \
-	fi
-	@$(MAKE) -C tests disk
-	@if [ -f tests/test_disk.img ]; then \
-		cp tests/test_disk.img $(DISK_IMG) && echo "Copied tests/test_disk.img -> $(DISK_IMG)"; \
-	else \
-		echo "WARNING: tests/test_disk.img not found; disk creation in tests may have failed."; \
-	fi
-	@if command -v mcopy > /dev/null 2>&1; then \
-		echo "==> Copying kernel to disk (KERNEL.BIN)"; \
-		mcopy -i $(DISK_IMG)@@1M -o $(OS_BIN) ::KERNEL.BIN && echo "Kernel copied to disk"; \
-	else \
-		echo "WARNING: mcopy not found. Cannot copy kernel to disk."; \
-	fi
+	@echo "==> Creating fresh FAT32 disk image"
+	@DISK_SIZE_MB=$(DISK_SIZE_MB) OS_BIN=$(OS_BIN) DISK_IMG=$(DISK_IMG) ./scripts/make_disk.sh
 
 # Run the OS directly in QEMU (bypass bootloader)
 run-os: os

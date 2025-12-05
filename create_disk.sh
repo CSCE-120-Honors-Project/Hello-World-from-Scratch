@@ -42,8 +42,14 @@ PART_SIZE_MB=$((DISK_SIZE_MB - 1))
 # Create a temporary file for the partition content
 dd if=/dev/zero of=partition.img bs=1M count=$PART_SIZE_MB 2>/dev/null
 
-# Format the temporary file
-mkfs.fat -F 32 -n "BOOTDISK" partition.img > /dev/null
+# Format the temporary file (prefer mkfs.fat or mkfs.vfat)
+if command -v mkfs.fat >/dev/null 2>&1; then
+    mkfs.fat -F 32 -n "BOOTDISK" partition.img > /dev/null 2>&1
+elif command -v mkfs.vfat >/dev/null 2>&1; then
+    mkfs.vfat -F 32 -n "BOOTDISK" partition.img > /dev/null 2>&1
+else
+    echo "WARNING: neither mkfs.fat nor mkfs.vfat found; partition will be empty"
+fi
 
 # Copy the formatted partition into the disk image at the correct offset (1MB = 2048 sectors)
 dd if=partition.img of=$DISK_IMG bs=1M seek=1 conv=notrunc 2>/dev/null
@@ -59,11 +65,38 @@ echo "Adding files to disk..."
 MOUNT_POINT="/tmp/vio_disk_mount_$$"
 mkdir -p $MOUNT_POINT
 
-# Mount using loopback at the partition offset (1MB = 1048576 bytes)
-PARTITION_OFFSET=1048576
-mount -o loop,offset=$PARTITION_OFFSET $DISK_IMG $MOUNT_POINT
+LOOP_DEVICE=""
+# Try to attach loop device with partition parsing (losetup -fP)
+if command -v losetup >/dev/null 2>&1; then
+    LOOP_DEVICE=$(sudo losetup -fP --show $DISK_IMG 2>/dev/null || true)
+    if [ -n "$LOOP_DEVICE" ]; then
+        # Try common partition name variants
+        if [ -b "${LOOP_DEVICE}p1" ]; then
+            PART_DEV=${LOOP_DEVICE}p1
+        elif [ -b "${LOOP_DEVICE}1" ]; then
+            PART_DEV=${LOOP_DEVICE}1
+        else
+            PART_DEV=""
+        fi
+        if [ -n "$PART_DEV" ]; then
+            sudo mount $PART_DEV $MOUNT_POINT 2>/dev/null || true
+        else
+            # Fallback to offset mount
+            PARTITION_OFFSET=1048576
+            sudo mount -o loop,offset=$PARTITION_OFFSET $DISK_IMG $MOUNT_POINT 2>/dev/null || true
+        fi
+    else
+        # losetup not allowed or failed; try offset mount
+        PARTITION_OFFSET=1048576
+        mount -o loop,offset=$PARTITION_OFFSET $DISK_IMG $MOUNT_POINT 2>/dev/null || true
+    fi
+else
+    # No losetup available; try offset mount
+    PARTITION_OFFSET=1048576
+    mount -o loop,offset=$PARTITION_OFFSET $DISK_IMG $MOUNT_POINT 2>/dev/null || true
+fi
 
-if [ $? -eq 0 ]; then
+if mountpoint -q $MOUNT_POINT >/dev/null 2>&1; then
     # Build the real OS
     echo "Building OS kernel..."
     
@@ -96,11 +129,19 @@ if [ $? -eq 0 ]; then
     ls -lh $MOUNT_POINT/
     
     # Unmount
-    umount $MOUNT_POINT
+    umount $MOUNT_POINT || true
     echo "✓ OS kernel copied to disk"
+    # Detach loop device if we attached one
+    if [ -n "$LOOP_DEVICE" ]; then
+        sudo losetup -d $LOOP_DEVICE >/dev/null 2>&1 || true
+    fi
 else
     echo "✗ Failed to mount disk"
     rm -rf $MOUNT_POINT
+    # Detach loop device if created
+    if [ -n "$LOOP_DEVICE" ]; then
+        sudo losetup -d $LOOP_DEVICE >/dev/null 2>&1 || true
+    fi
     exit 1
 fi
 

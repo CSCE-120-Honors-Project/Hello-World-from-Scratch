@@ -1,5 +1,4 @@
 #include "uart.h"
-#include <stdint.h>
 
 // uart registers
 #define UART_BASE   0x09000000

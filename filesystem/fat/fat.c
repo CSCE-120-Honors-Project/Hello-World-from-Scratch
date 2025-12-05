@@ -90,7 +90,10 @@ void format_filename(const char* src, char* dest) {
     // Copy name part
     int i = 0;
     while (i < 8 && src[i] != '\0' && src[i] != '.') {
-        dest[i] = src[i];
+        char c = src[i];
+        // normalize to upper-case for FAT short names
+        if (c >= 'a' && c <= 'z') c = c - 'a' + 'A';
+        dest[i] = c;
         i++;
     }
 
@@ -101,7 +104,9 @@ void format_filename(const char* src, char* dest) {
 
     i++; // Skip the dot
     for (int j = 8; j < 11 && src[i] != '\0'; j++) {
-        dest[j] = src[i++];
+        char c = src[i++];
+        if (c >= 'a' && c <= 'z') c = c - 'a' + 'A';
+        dest[j] = c;
     }
 }
 

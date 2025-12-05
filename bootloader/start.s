@@ -6,7 +6,7 @@ _start:
     msr DAIFSet, #0xF
     
     // Set up stack pointer
-    ldr x0, =stack_top
+    ldr x0, =boot_stack_top
     mov sp, x0
     
     // Clear BSS section (required for C runtime)
@@ -27,10 +27,3 @@ bss_cleared:
 hang:
     wfe                     // Wait for event/interrupt
     b hang
-    
-// Stack space (stored in BSS to save ELF file size)
-.section ".bss"
-.align 8
-stack:
-    .space 4096
-stack_top:

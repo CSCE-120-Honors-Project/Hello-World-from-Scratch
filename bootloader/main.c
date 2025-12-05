@@ -213,8 +213,4 @@ fatal_error:
     while (1) {
         asm volatile("wfe");  // Wait for event/interrupt
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> dannienew
