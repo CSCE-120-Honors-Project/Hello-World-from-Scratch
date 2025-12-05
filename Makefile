@@ -23,7 +23,7 @@ JOBS ?= $(shell nproc)
 
 # Artifact locations produced by the CMake build
 OS_ELF := $(BUILD_DIR)/os/os.elf
-OS_BIN := $(BUILD_DIR)/os.bin
+OS_BIN := $(BUILD_DIR)/os/os.bin
 BOOTLOADER_ELF := $(BUILD_DIR)/bootloader/bootloader.elf
 
 # Disk image settings
@@ -50,6 +50,16 @@ build: configure
 	@echo "==> Building (parallel=$(JOBS))"
 	@$(CMAKE) --build $(BUILD_DIR) -- -j$(JOBS)
 	@echo "==> Build finished"
+
+# Build only the OS target
+os: configure
+	@echo "==> Building OS target"
+	@$(CMAKE) --build $(BUILD_DIR) --target os -- -j$(JOBS)
+
+# Build only the bootloader target
+bootloader: configure
+	@echo "==> Building bootloader target"
+	@$(CMAKE) --build $(BUILD_DIR) --target bootloader -- -j$(JOBS)
 
 # Create FAT32 disk image by delegating to tests/Makefile (leverages tested mtools workflow)
 
