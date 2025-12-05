@@ -31,7 +31,7 @@ DISK_IMG ?= disk.img
 DISK_SIZE_MB ?= 100
 
 # QEMU options
-QEMU_FLAGS ?= -M virt -cpu cortex-a53 -nographic
+QEMU_FLAGS ?= -M virt -cpu cortex-a53 #-nographic
 
 # .PHONY: all configure build os bootloader clean distclean disk run run-os run-bootloader help info
 .PHONY: all configure build os bootloader clean run run-os run-bootloader help info
