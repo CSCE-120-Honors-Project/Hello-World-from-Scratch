@@ -40,4 +40,3 @@ hang:
     wfi
     b hang
     
-    

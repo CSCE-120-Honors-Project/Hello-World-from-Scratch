@@ -1,4 +1,5 @@
 #include "uart.h"
+#include <stdint.h>
 
 // uart registers
 #define UART_BASE   0x09000000
@@ -43,46 +44,44 @@ void uart_puts(const char* s) {
     }
 }
 
-// print a hexadecimal value
-void uart_print_hex(unsigned long value) {
-    uart_puts("0x");
+// NEW: Print 64-bit value as hexadecimal
+void uart_print_hex(uint64_t value) {
+    static const char hex_chars[] = "0123456789ABCDEF";
+    char buffer[17];
+    buffer[16] = '\0';
     
-    if (value == 0) {
-        uart_putc('0');
-        return;
+    // Convert to hex, right to left
+    for (int i = 15; i >= 0; i--) {
+        buffer[i] = hex_chars[value & 0xF];
+        value >>= 4;
     }
     
-    char buffer[16];
-    int len = 0;
-    unsigned long temp = value;
-    
-    while (temp > 0) {
-        buffer[len++] = (char)((temp % 16 < 10) ? ('0' + temp % 16) : ('a' + temp % 16 - 10));
-        temp /= 16;
-    }
-    
-    for (int i = len - 1; i >= 0; i--) {
-        uart_putc(buffer[i]);
-    }
+    uart_puts(buffer);
 }
 
-// print a decimal value
-void uart_print_dec(unsigned long value) {
+// NEW: Print 32-bit value as decimal
+void uart_print_dec(uint32_t value) {
     if (value == 0) {
         uart_putc('0');
         return;
     }
     
-    char buffer[20];
-    int len = 0;
-    unsigned long temp = value;
-    
+    // Count digits
+    uint32_t temp = value;
+    int digits = 0;
     while (temp > 0) {
-        buffer[len++] = (char)('0' + temp % 10);
+        digits++;
         temp /= 10;
     }
     
-    for (int i = len - 1; i >= 0; i--) {
-        uart_putc(buffer[i]);
+    // Print from left to right
+    char buffer[11];
+    buffer[digits] = '\0';
+    
+    for (int i = digits - 1; i >= 0; i--) {
+        buffer[i] = '0' + (value % 10);
+        value /= 10;
     }
+    
+    uart_puts(buffer);
 }
