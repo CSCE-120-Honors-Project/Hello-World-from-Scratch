@@ -33,7 +33,8 @@ DISK_SIZE_MB ?= 100
 # QEMU options
 QEMU_FLAGS ?= -M virt -cpu cortex-a53 -nographic
 
-.PHONY: all configure build os bootloader clean distclean disk run run-os run-bootloader help info
+# .PHONY: all configure build os bootloader clean distclean disk run run-os run-bootloader help info
+.PHONY: all configure build os bootloader clean run run-os run-bootloader help info
 .DEFAULT_GOAL := all
 
 # Default: build everything
@@ -50,6 +51,10 @@ build: configure
 	@echo "==> Building (parallel=$(JOBS))"
 	@$(CMAKE) --build $(BUILD_DIR) -- -j$(JOBS)
 	@echo "==> Build finished"
+	@echo ""
+	@echo "⚠️  NOTE: Changes to os/ require manual disk update."
+	@echo "   See README.md 'Updating the OS' section for instructions."
+	@echo ""
 
 # Build only the OS target
 os: configure
@@ -61,12 +66,11 @@ bootloader: configure
 	@echo "==> Building bootloader target"
 	@$(CMAKE) --build $(BUILD_DIR) --target bootloader -- -j$(JOBS)
 
+# UPDATE: We are no longer making new disk images, just using a premade one
 # Create FAT32 disk image by delegating to tests/Makefile (leverages tested mtools workflow)
-
-
-disk: os
-	@echo "==> Creating fresh FAT32 disk image"
-	@DISK_SIZE_MB=$(DISK_SIZE_MB) OS_BIN=$(OS_BIN) DISK_IMG=$(DISK_IMG) ./scripts/make_disk.sh
+# disk: os
+# 	@echo "==> Creating fresh FAT32 disk image"
+# 	@DISK_SIZE_MB=$(DISK_SIZE_MB) OS_BIN=$(OS_BIN) DISK_IMG=$(DISK_IMG) ./scripts/make_disk.sh
 
 # Run the OS directly in QEMU (bypass bootloader)
 run-os: os
@@ -75,7 +79,8 @@ run-os: os
 	@$(QEMU) $(QEMU_FLAGS) -kernel $(OS_ELF)
 
 # Run bootloader with disk image attached (firmware should load OS from disk)
-run: build disk
+# run: build disk
+run: build
 	@echo "==> Running bootloader in QEMU (with disk)"
 	@echo "Press Ctrl+A then X to exit QEMU"
 	@$(QEMU) $(QEMU_FLAGS) -kernel $(BOOTLOADER_ELF) \
@@ -92,10 +97,11 @@ clean:
 	@echo "==> Cleaning build directory"
 	@rm -rf $(BUILD_DIR)
 
+# not used anymore
 # Remove build dir and disk image
-distclean: clean
-	@echo "==> Removing disk image"
-	@rm -f $(DISK_IMG)
+# distclean: clean
+# 	@echo "==> Removing disk image"
+# 	@rm -f $(DISK_IMG)
 
 # Rebuild everything from scratch
 rebuild: distclean all

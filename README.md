@@ -63,6 +63,57 @@ For those who really want a link to the code, [here it is](https://github.com/CS
 ## Running the Code
 ---
 
+### Quick Start
+```bash
+git clone https://github.com/CSCE-120-Honors-Project/DIY-Bootloader.git
+cd DIY-Bootloader
+make build
+make run
+```
+
+Press `Ctrl+A` then `X` to exit QEMU.
+
+### What's Included
+The project includes a pre-made `disk.img` with:
+- FAT32 filesystem
+- `KERNEL.BIN` containing the "Hello World" OS
+- Already formatted and ready to use
+
+### Updating the OS
+If you modify `os/main.c` or other OS files, follow these steps:
+
+1. **Rebuild the OS**:
+   ```bash
+   make build
+   ```
+
+2. **Mount the disk image and update KERNEL.BIN**:
+
+   **On Linux/WSL**:
+   ```bash
+   mkdir -p /tmp/disk_mount
+   sudo mount -o loop disk.img /tmp/disk_mount
+   sudo cp build/os/os.bin /tmp/disk_mount/KERNEL.BIN
+   sudo umount /tmp/disk_mount
+   ```
+
+   **On macOS**:
+   ```bash
+   hdiutil mount disk.img
+   cp build/os/os.bin /Volumes/*/KERNEL.BIN
+   hdiutil unmount /Volumes/*
+   ```
+
+   **Note**: Loop device support varies by platform. If you encounter issues:
+   - **Windows WSL2**: May have loop device limitations; use the macOS approach with `hdiutil` if available
+   - **WSL1**: Consider upgrading to WSL2 or using a Linux VM
+   - **Docker**: Can mount inside a container with appropriate privileges
+
+3. **Run the updated image**:
+   ```bash
+   make run
+   ```
+
 ## User Instructions
 ---
 
