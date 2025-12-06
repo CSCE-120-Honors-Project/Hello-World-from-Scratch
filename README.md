@@ -93,7 +93,38 @@ On Windows, the project is easiest to build inside WSL (Ubuntu) while using a Wi
         ```bash
         aarch64-none-elf-gcc --version
         ```
+#### macOS 
+On macOS, you need Homebrew to install the necessary tools. The setup is straightforward since QEMU and the ARM toolchain are directly available.
 
+Install Prerequisites via Homebrew:
+Open your Terminal and run:
+```
+brew install cmake qemu
+```
+Install the ARM Toolchain:
+
+```
+
+
+brew install --cask gcc-arm-embedded
+brew install aarch-elf-gcc
+```
+Verify Installation:
+Check that the compiler is accessible:
+```
+
+arm-none-eabi-gcc --version
+qemu-system-aarch64 --version
+```
+Note on Disk Images:
+macOS uses hdiutil instead of mount for disk images. If you need to manually inspect disk.img later (as mentioned in the "Updating the OS" section), use:
+
+```
+hdiutil attach disk.img
+(And hdiutil detach /Volumes/YourVolumeName to unmount).
+```
+
+However, for simply running make run, the provided Makefile usually handles QEMU arguments for you, so you shouldn't need to manually mount anything unless you are debugging the filesystem contents.
 
 
 ### Quick Start
@@ -156,7 +187,7 @@ If you modify `os/main.c` or other OS files, follow these steps:
         ```
 
 
-Remeber to see the output you must view virtual serial port by clicking "view" then "serialport0" 
+**Remeber to see the output you must view virtual serial port by clicking "view" then "serialport0" **
 
 <img width="340" height="478" alt="image" src="https://github.com/user-attachments/assets/3ee523ee-0a6c-47a7-9935-98c5d8791d2f" />
 
