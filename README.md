@@ -104,9 +104,6 @@ brew install cmake qemu
 Install the ARM Toolchain:
 
 ```
-
-
-brew install --cask gcc-arm-embedded
 brew install aarch-elf-gcc
 ```
 Verify Installation:
