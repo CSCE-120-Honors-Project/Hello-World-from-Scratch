@@ -7,6 +7,7 @@ _start:
     
     // Set up stack pointer
     ldr x0, =boot_stack_top
+    bic x0, x0, #0xF
     mov sp, x0
     
     // Clear BSS section (required for C runtime)
