@@ -63,7 +63,7 @@ static inline int read_dir_cluster(uint32_t cluster, fat_directory_entry* dir_en
 }
 
 // Get the starting cluster of a directory entry
-static inline uint32_t get_cluster(const fat_directory_entry* entry) {
+static inline uint32_t get_cluster(volatile fat_directory_entry* entry) {
     return (entry->first_cluster_high << 16) | entry->first_cluster_low;
 }
 
