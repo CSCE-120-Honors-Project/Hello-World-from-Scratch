@@ -33,7 +33,7 @@ if(NOT CROSS_GCC)
     message(FATAL_ERROR 
         "ARM64 cross-compiler not found!\n"
         "Install instructions:\n"
-        "  Linux:   sudo apt install gcc-aarch64-linux-gnu\n"
+        "  Linux:   sudo apt install g++-aarch64-linux-gnu\n"
         "  Windows: Download from https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads\n"
         "  macOS:   brew install aarch64-unknown-linux-gnu"
     )
