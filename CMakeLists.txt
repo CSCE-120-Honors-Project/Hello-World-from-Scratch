@@ -22,9 +22,10 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 # Try to find ARM64 cross-compiler
 find_program(CROSS_GCC 
     NAMES 
+        aarch64-elf-gcc                 # macOS Homebrew
         aarch64-linux-gnu-gcc           # Linux (Ubuntu/Debian)
         aarch64-none-linux-gnu-gcc      # ARM official / Windows
-        aarch64-unknown-linux-gnu-gcc   # macOS Homebrew
+        aarch64-unknown-linux-gnu-gcc   # Alternative macOS
     DOC "ARM64 cross-compiler"
 )
 
@@ -35,7 +36,7 @@ if(NOT CROSS_GCC)
         "Install instructions:\n"
         "  Linux:   sudo apt install g++-aarch64-linux-gnu\n"
         "  Windows: Download from https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads\n"
-        "  macOS:   brew install aarch64-unknown-linux-gnu"
+        "  macOS:   brew install aarch64-elf-gcc"
     )
 endif()
 

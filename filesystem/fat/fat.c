@@ -63,7 +63,7 @@ static inline int read_dir_cluster(uint32_t cluster, fat_directory_entry* dir_en
 }
 
 // Get the starting cluster of a directory entry
-static inline uint32_t get_cluster(const fat_directory_entry* entry) {
+static inline uint32_t get_cluster(volatile fat_directory_entry* entry) {
     return (entry->first_cluster_high << 16) | entry->first_cluster_low;
 }
 
@@ -169,13 +169,16 @@ static int fat_open_r(
     ) {
 
     // Use our static directory buffer to avoid stack overflow
-    fat_directory_entry* current_dir = dir_entry_buffer;
+    volatile fat_directory_entry* current_dir = dir_entry_buffer;
 
     // Read the directory entries from the specified cluster
-    if (read_dir_cluster(cluster, current_dir) < 0) {
+    if (read_dir_cluster(cluster, (fat_directory_entry*)current_dir) < 0) {
         // Read failed
         return -1;
     }
+    
+    // Memory barrier to ensure directory data is visible after DMA
+    __sync_synchronize();
     
     // Search for the file in the directory entries
     for (
@@ -220,15 +223,16 @@ static int fat_open_r(
         }
 
         // File found in recursive call
-        if (
-                current_dir[i].attr & 0x10 && // Is a directory
-                fat_open_r(
+        if (current_dir[i].attr & 0x10) {
+            // Is a directory
+            if (fat_open_r(
                     filename, 
                     file, 
                     get_cluster(&current_dir[i])
                 ) == 0
             ) {
-            return 0;
+                return 0;
+            }
         }
     }
 

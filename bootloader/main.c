@@ -17,7 +17,7 @@
 #include <stdbool.h>
 
 // Configuration
-#define KERNEL_FILENAME "KERNEL  BIN"  // 8.3 format (must be exactly 11 chars)
+#define KERNEL_FILENAME "KERNEL  BIN"
 #define KERNEL_LOAD_ADDR 0x40080000    // Where to load kernel in memory
 #define MAX_KERNEL_SIZE (16 * 1024 * 1024)  // 16MB max kernel size
 
@@ -95,6 +95,8 @@ void boot_main(void) {
     uart_puts("\n\r");
     
     fat_file kernel_file = {0};
+
+    uart_puts("Opening kernel file...\n\r");
     if (fat_open(KERNEL_FILENAME, &kernel_file) < 0) {
         uart_puts("FATAL: Kernel file not found!\n\r");
         uart_puts("Make sure KERNEL.BIN exists on the disk.\n\r");

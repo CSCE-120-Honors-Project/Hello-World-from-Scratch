@@ -1,11 +1,21 @@
 # Test suite for FAT, VIO, and UART drivers
 # Targets QEMU virt board with Cortex-A53 CPU
 
+# Detect platform and set appropriate toolchain
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    # macOS - use aarch64-elf-gcc
+    TOOLCHAIN_PREFIX ?= aarch64-elf
+else
+    # Linux/other - use aarch64-linux-gnu-gcc
+    TOOLCHAIN_PREFIX ?= aarch64-linux-gnu
+endif
+
 # Compiler and tools
-CC = aarch64-elf-gcc
-AS = aarch64-elf-as
-LD = aarch64-elf-ld
-OBJCOPY = aarch64-elf-objcopy
+CC = $(TOOLCHAIN_PREFIX)-gcc
+AS = $(TOOLCHAIN_PREFIX)-as
+LD = $(TOOLCHAIN_PREFIX)-ld
+OBJCOPY = $(TOOLCHAIN_PREFIX)-objcopy
 
 # Directories
 UART_DIR = ../uart
