@@ -184,7 +184,7 @@ If you modify `os/main.c` or other OS files, follow these steps:
         ```
 
 
-**Remeber to see the output you must view virtual serial port by clicking "view" then "serialport0" **
+**Remember to see the output you must view virtual serial port by clicking "view" then "serialport0"**
 
 <img width="340" height="478" alt="image" src="https://github.com/user-attachments/assets/3ee523ee-0a6c-47a7-9935-98c5d8791d2f" />
 
